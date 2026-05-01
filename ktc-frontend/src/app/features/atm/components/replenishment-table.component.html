@@ -1,0 +1,36 @@
+@if (isLoading()) {
+  <div class="subtab-state">Chargement des replenishments...</div>
+} @else if (error()) {
+  <div class="subtab-state subtab-state--error">{{ error() }}</div>
+} @else if (rows().length === 0) {
+  <div class="subtab-state">Aucun replenishment trouvé pour ce composant.</div>
+} @else {
+  <div class="subtab-table-wrap">
+    <table class="subtab-table">
+      <thead>
+        <tr>
+          <th>Repl. ID</th>
+          <th>Timestamp</th>
+          <th>Transaction</th>
+          <th>Property</th>
+          <th>Denomination</th>
+          <th>Before</th>
+          <th>After</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.replenishmentId + '-' + row.propertyId + '-' + row.denominationId) {
+          <tr>
+            <td class="mono">{{ row.replenishmentId }}</td>
+            <td class="mono">{{ row.timestmp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td class="mono">{{ row.transactionId ?? '-' }}</td>
+            <td>{{ row.propertyName }}</td>
+            <td>{{ formatDenomination(row) }}</td>
+            <td class="mono">{{ row.beforeCount }}</td>
+            <td class="mono">{{ row.afterCount }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

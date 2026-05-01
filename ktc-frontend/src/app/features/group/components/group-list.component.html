@@ -1,0 +1,248 @@
+﻿<div class="page-wrapper">
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Groupes</h1>
+      <p class="page-subtitle">Gestion des groupes d'ATMs</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-primary" (click)="goCreate()">
+        <span class="btn-icon">＋</span> Nouveau groupe
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 3-Column Layout ──────────────────────────────────────────────────── -->
+  <div class="three-col-layout">
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         COLONNE 1 : LISTE DES GROUPES
+    ════════════════════════════════════════════════════════════════════ -->
+    <div class="col-left">
+      <div class="card">
+        <div class="col-head">
+          <h2 class="col-title">Groupes</h2>
+          <span class="col-badge">{{ totalCount() }}</span>
+        </div>
+
+        <!-- Recherche -->
+        <input
+          class="search-input"
+          type="text"
+          placeholder="Rechercher…"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+
+        <!-- Loading -->
+        <div *ngIf="isLoading()" class="state-box">
+          <div class="spinner"></div>
+          <p>Chargement…</p>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="error() && !isLoading()" class="error-box">
+          ⚠️ {{ error() }}
+          <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
+        </div>
+
+        <!-- Liste -->
+        <div *ngIf="!isLoading() && !error()" class="list-wrapper">
+          <div *ngIf="filtered().length === 0" class="empty-list">
+            <p>Aucun groupe</p>
+          </div>
+
+          <div
+            *ngFor="let group of filtered()"
+            class="list-item"
+            [class.active]="selectedGroupId() === group.groupId"
+            (click)="selectGroup(group.groupId)"
+          >
+            <div class="list-item-content">
+              <div class="list-item-title">{{ group.groupName }}</div>
+              <div class="list-item-meta">
+                <span class="meta-badge">Type: {{ groupTypeLabel(group.groupTypeId) }}</span>
+              </div>
+            </div>
+            <div class="list-item-actions">
+              <button
+                class="icon-btn icon-btn--sm"
+                title="Modifier"
+                (click)="goEdit(group.groupId); $event.stopPropagation()"
+              >
+                ✏️
+              </button>
+              <button
+                class="icon-btn icon-btn--sm icon-btn--del"
+                title="Supprimer"
+                (click)="confirmDelete(group); $event.stopPropagation()"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         COLONNE 2 : DÉTAILS DU GROUPE
+    ════════════════════════════════════════════════════════════════════ -->
+    <div class="col-center">
+      <div *ngIf="!selectedGroupId()" class="card empty-card">
+        <div class="empty-placeholder">
+          <p>Sélectionnez un groupe</p>
+        </div>
+      </div>
+
+      <div *ngIf="selectedGroupId() && selectedGroupDtl()" class="card">
+        <div class="details-panel">
+          <!-- Header -->
+          <div class="details-head">
+            <h2 class="details-title">{{ selectedGroupDtl()!.groupName }}</h2>
+            <span class="type-badge type-{{ selectedGroupDtl()!.groupTypeId ?? 0 }}">
+              {{ groupTypeLabel(selectedGroupDtl()!.groupTypeId) }}
+            </span>
+          </div>
+
+          <!-- Description -->
+          <div *ngIf="selectedGroupDtl()!.groupDescription" class="info-block">
+            <span class="info-label">Description</span>
+            <p class="info-value">{{ selectedGroupDtl()!.groupDescription }}</p>
+          </div>
+
+          <!-- Query -->
+          <div *ngIf="selectedGroupDtl()!.groupQuery" class="info-block">
+            <span class="info-label">Requête</span>
+            <code class="info-code">{{ selectedGroupDtl()!.groupQuery }}</code>
+          </div>
+
+          <!-- Meta -->
+          <div class="meta-row">
+            <div class="meta-item" *ngIf="selectedGroupDtl()!.evaluationInterval">
+              <span class="meta-label">Intervalle:</span>
+              <span class="meta-value">{{ selectedGroupDtl()!.evaluationInterval }} min</span>
+            </div>
+            <div class="meta-item" *ngIf="selectedGroupDtl()!.includeMothballed">
+              <span class="meta-label">⚠️ Inclut désactivés</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         COLONNE 3 : CLIENTS & AJOUT
+    ════════════════════════════════════════════════════════════════════ -->
+    <div class="col-right">
+      <div *ngIf="!selectedGroupId()" class="card empty-card">
+        <div class="empty-placeholder">
+          <p>Sélectionnez un groupe</p>
+        </div>
+      </div>
+
+      <div *ngIf="selectedGroupId() && selectedGroupDtl()" class="card">
+        <!-- Clients header -->
+        <div class="col-head">
+          <h3 class="col-title">Clients ({{ selectedGroupDtl()!.clients?.length ?? 0 }})</h3>
+        </div>
+
+        <!-- Tabs / Sections -->
+        <div class="clients-tabs">
+          <!-- TAB 1: Clients actuels -->
+          <div class="tab-section active">
+            <h4 class="tab-title">Clients actuels</h4>
+
+            <!-- Empty -->
+            <div *ngIf="!selectedGroupDtl()!.clients || selectedGroupDtl()!.clients!.length === 0" class="empty-clients">
+              <p>Aucun client</p>
+            </div>
+
+            <!-- List -->
+            <div *ngIf="selectedGroupDtl()!.clients && selectedGroupDtl()!.clients!.length > 0" class="clients-list">
+              <div *ngFor="let client of selectedGroupDtl()!.clients" class="client-row">
+                <div class="client-status-dot"
+                  [class.dot--ok]="client.active"
+                  [class.dot--down]="!client.active">
+                </div>
+                <div class="client-info">
+                  <div class="client-name">{{ client.clientName }}</div>
+                  <div class="client-sub">
+                    <code class="client-ip">{{ client.networkAddress }}</code>
+                  </div>
+                </div>
+                <button
+                  class="icon-btn icon-btn--del"
+                  title="Retirer"
+                  (click)="removeClientFromGroup(client.clientId)"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Ajouter des clients -->
+          <div class="tab-section">
+            <h4 class="tab-title">Ajouter des clients</h4>
+
+            <!-- Recherche -->
+            <input
+              class="search-input search-input--sm"
+              type="text"
+              placeholder="Rechercher ATM…"
+              [(ngModel)]="clientSearch"
+              (ngModelChange)="clientSearch.set($event)"
+              (focus)="loadAvailableAtms()"
+            />
+
+            <!-- Loading -->
+            <div *ngIf="loadingAtms()" class="state-box">
+              <div class="spinner"></div>
+              <p>Chargement…</p>
+            </div>
+
+            <!-- Available ATMs -->
+            <div *ngIf="!loadingAtms()" class="atms-list">
+              <div *ngIf="availableAtms().length === 0" class="empty-state">
+                <p>Aucun ATM disponible</p>
+              </div>
+
+              <div *ngFor="let atm of availableAtms()" class="atm-row">
+                <input
+                  type="checkbox"
+                  class="atm-checkbox"
+                  [checked]="isSelected(atm.clientId)"
+                  (change)="toggleSelection(atm.clientId)"
+                />
+                <div class="client-status-dot"
+                  [class.dot--ok]="atm.active"
+                  [class.dot--down]="!atm.active">
+                </div>
+                <div class="client-info">
+                  <div class="client-name">#{{ atm.clientId }} — {{ atm.clientName }}</div>
+                  <div class="client-sub">
+                    <code class="client-ip">{{ atm.networkAddress }}</code>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selection footer -->
+            <div *ngIf="selectedClientIds().size > 0" class="selection-footer">
+              <span class="selection-count">{{ selectedClientIds().size }} sélectionné{{ selectedClientIds().size > 1 ? 's' : '' }}</span>
+              <button
+                class="btn btn-success"
+                (click)="addSelectedClients()"
+                [disabled]="isAddingBulk()"
+              >
+                {{ isAddingBulk() ? '…' : '＋ Ajouter' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

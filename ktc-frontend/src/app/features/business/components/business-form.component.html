@@ -1,0 +1,73 @@
+<div class="page-wrapper">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <button class="back-btn" (click)="cancel()">← Retour</button>
+      <h1 class="page-title">{{ isEdit() ? 'Modifier le Business' : 'Nouveau Business' }}</h1>
+      <p class="page-subtitle">
+        {{ isEdit() ? 'Mise à jour du Business #' + editId() : 'Enregistrer un nouveau business' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement…</p>
+  </div>
+
+  <!-- ── Alerts ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="alert alert--error">⚠️ {{ error() }}</div>
+  <div *ngIf="successMsg()"            class="alert alert--ok">✅ {{ successMsg() }}</div>
+
+  <!-- ── Form ────────────────────────────────────────────────────────────── -->
+  <form
+    *ngIf="!isLoading()"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="form-grid"
+  >
+
+    <!-- ═══ Section : Identification ════════════════════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Identification</h2>
+      <div class="fields-row">
+
+        <div class="field">
+          <label class="field-label" for="businessName">Nom du Business <span class="req">*</span></label>
+          <input id="businessName" type="text" formControlName="businessName" placeholder="ex: AWB, CIH Bank…" />
+          <small *ngIf="f['businessName'].invalid && f['businessName'].touched" class="field-error">
+            Nom requis (min 2 caractères)
+          </small>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="displayId">Display ID</label>
+          <input id="displayId" type="text" formControlName="displayId" placeholder="ex: AWB-001" />
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ Section : Informations complémentaires ══════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Informations complémentaires</h2>
+      <textarea
+        id="additionalInfo"
+        formControlName="additionalInfo"
+        rows="4"
+        placeholder="Notes internes, informations XML/JSON…"
+      ></textarea>
+    </div>
+
+    <!-- ═══ Actions ═════════════════════════════════════════════════════════ -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+        {{ isSaving() ? 'Enregistrement…' : (isEdit() ? 'Mettre à jour' : 'Créer le Business') }}
+      </button>
+    </div>
+
+  </form>
+</div>

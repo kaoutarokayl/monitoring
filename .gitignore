@@ -1,0 +1,76 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+[Bb]in/
+[Oo]bj/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider
+.idea/
+*.sln.iml
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/
+# except build/, which is used as an MSBuild target.
+!**/packages/build/
+*.snupkg
+
+# Visual Studio Code
+.vscode/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Angular / frontend
+ktc-frontend/dist/
+ktc-frontend/.angular/
+ktc-frontend/.angular-cache/
+ktc-frontend/.parcel-cache/
+ktc-frontend/ng-package.json
+
+# npm
+package-lock.json
+npm-shrinkwrap.json
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# JetBrains
+.idea/
+*.iml
+
+# Ignore generated resources
+**/GeneratedInternalTypeHelper.g.cs
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userprefs

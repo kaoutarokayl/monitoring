@@ -1,0 +1,110 @@
+<div class="page-wrapper">
+  <div class="player card">
+    <div class="player-head">
+      <div class="title">
+        <strong>VideoJournal</strong>
+        <span class="muted" *ngIf="selected() as s">| {{ s.timestamp | date:'yyyy-MM-dd HH:mm:ss' }} | {{ s.cameraPosition }}</span>
+      </div>
+      <div class="badge" *ngIf="selected()?.suspect">
+        🔴 Suspect
+      </div>
+    </div>
+
+    <div class="player-body">
+      <ng-container *ngIf="selectedMediaUrl() as url; else placeholder">
+        <video *ngIf="isSelectedVideo()" class="media" [src]="url" controls preload="metadata"></video>
+        <img *ngIf="isSelectedImage()" class="media" [src]="url" alt="snapshot" />
+
+        <div *ngIf="!isSelectedVideo() && !isSelectedImage()" class="placeholder">
+          <div class="ph-icon">🎥</div>
+          <div class="ph-title">Media détecté mais type inconnu</div>
+          <div class="ph-sub">Fichier: <span class="mono">{{ selected()?.mediaFileName }}</span></div>
+          <a class="btn btn-secondary btn--sm" [href]="url" target="_blank" rel="noopener">Open</a>
+        </div>
+      </ng-container>
+
+      <ng-template #placeholder>
+        <div class="placeholder">
+          <div class="ph-icon">🎥</div>
+          <div class="ph-title">Aucun média sélectionné</div>
+          <div class="ph-sub">Sélectionnez une ligne dans le tableau.</div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="toolbar card">
+    <form [formGroup]="filterForm" class="toolbar-grid">
+      <label class="field">
+        <span class="label">From</span>
+        <input class="input" type="datetime-local" formControlName="from" />
+      </label>
+
+      <label class="field">
+        <span class="label">To</span>
+        <input class="input" type="datetime-local" formControlName="to" />
+      </label>
+
+      <label class="field grow">
+        <span class="label">Search</span>
+        <input class="input" formControlName="search" placeholder="Transaction GUID / Amount / File…" />
+      </label>
+
+      <button type="button" class="btn btn-primary" (click)="refresh()" [disabled]="isLoading()">
+        Refresh
+      </button>
+    </form>
+
+    <div *ngIf="error()" class="error-box">
+      <span>⚠️ {{ error() }}</span>
+    </div>
+  </div>
+
+  <div class="grid card">
+    <div class="grid-head">
+      <div class="muted">Events: <strong>{{ rows().length }}</strong></div>
+      <div *ngIf="isLoading()" class="inline-loading">
+        <div class="spinner"></div><span>Loading…</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="dense-table">
+        <thead>
+          <tr>
+            <th>Transaction Information</th>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th>CameraPosition</th>
+            <th>Position</th>
+            <th class="center">Suspect</th>
+            <th class="num">Amount</th>
+            <th>Completion</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of rows(); trackBy: trackByMediaId"
+              (click)="selectRow(r)"
+              [class.active]="selected()?.mediaId === r.mediaId">
+            <td class="mono">{{ r.transactionInformation }}</td>
+            <td class="mono">{{ r.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td>{{ r.type }}</td>
+            <td>{{ r.cameraPosition }}</td>
+            <td class="mono">{{ r.position }}</td>
+            <td class="center">
+              <span [class.ok]="!r.suspect" [class.ko]="r.suspect">{{ r.suspect ? '⚠️' : '—' }}</span>
+            </td>
+            <td class="num mono">{{ r.amount ?? '' }}</td>
+            <td>{{ r.completion }}</td>
+          </tr>
+          <tr *ngIf="rows().length === 0">
+            <td colspan="8" class="empty">
+              Aucun événement vidéo trouvé (base centrale vide ou non configurée).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+

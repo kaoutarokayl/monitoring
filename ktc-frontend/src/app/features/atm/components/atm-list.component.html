@@ -1,0 +1,118 @@
+<div class="page-wrapper">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">ATMs</h1>
+      <p class="page-subtitle">Gestion des distributeurs automatiques</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-secondary" (click)="goMap()">
+        <span class="btn-icon">🗺️</span> Vue Carte
+      </button>
+      <button class="btn btn-primary" (click)="goCreate()">
+        <span class="btn-icon">＋</span> Nouvel ATM
+      </button>
+    </div>
+  </div>
+
+  <!-- ── KPI strip ───────────────────────────────────────────────────────── -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalCount() }}</span>
+      <span class="kpi-label">Total</span>
+    </div>
+    <div class="kpi-card kpi-card--ok">
+      <span class="kpi-value">{{ activeCount() }}</span>
+      <span class="kpi-label">Actifs</span>
+    </div>
+    <div class="kpi-card kpi-card--down">
+      <span class="kpi-value">{{ inactiveCount() }}</span>
+      <span class="kpi-label">Inactifs</span>
+    </div>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="toolbar card">
+    <input class="search-input" type="text" placeholder="Rechercher par nom, IP, ID…" [(ngModel)]="searchQuery"
+      (ngModelChange)="searchQuery.set($event)" />
+    <div class="filter-group">
+      <button class="filter-btn" [class.active]="filterStatus() === 'all'"
+        (click)="filterStatus.set('all')">Tous</button>
+      <button class="filter-btn filter-btn--ok" [class.active]="filterStatus() === 'active'"
+        (click)="filterStatus.set('active')">Actifs</button>
+      <button class="filter-btn filter-btn--down" [class.active]="filterStatus() === 'inactive'"
+        (click)="filterStatus.set('inactive')">Inactifs</button>
+    </div>
+  </div>
+
+  <!-- ── Loading (Skeleton cards) ───────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="atm-grid atm-grid--skeleton">
+    <article class="atm-card atm-card--skeleton" *ngFor="let item of [1,2,3,4,5,6]">
+      <div class="skeleton-line skeleton-line--title"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line skeleton-line--short"></div>
+    </article>
+  </div>
+
+  <!-- ── Error ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="error-box">
+    <span>⚠️ {{ error() }}</span>
+    <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
+  </div>
+
+  <!-- ── Cards ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading() && !error()" class="card card-surface">
+    <div class="card-toolbar">
+      <button class="sort-chip" (click)="sort('clientName')">
+        <span>Nom</span> <span>{{ sortIcon('clientName') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('clientId')">
+        <span>ID</span> <span>{{ sortIcon('clientId') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('active')">
+        <span>Statut</span> <span>{{ sortIcon('active') }}</span>
+      </button>
+    </div>
+
+    <div *ngIf="filtered().length === 0" class="empty-state">
+      <div class="empty-icon">📡</div>
+      <p>Aucun ATM trouvé avec ces filtres</p>
+    </div>
+
+    <div *ngIf="filtered().length > 0" class="atm-grid">
+      <article *ngFor="let atm of filtered(); trackBy: trackByClientId" class="atm-card" (click)="goEdit(atm.clientId)">
+        <header class="atm-card__head">
+          <div class="name-cell">
+            <span class="status-dot" [class.dot--ok]="atm.active" [class.dot--down]="!atm.active"></span>
+            <h3>{{ atm.clientName }}</h3>
+          </div>
+          <span class="badge" [class.badge--ok]="atm.active" [class.badge--down]="!atm.active">
+            <span class="status-icon">{{ atm.active ? '🟢' : '🔴' }}</span>
+            {{ atm.active ? 'Online' : 'Offline' }}
+          </span>
+        </header>
+
+        <div class="atm-card__meta">
+          <div class="meta-row"><span class="meta-icon">🆔</span> <span>#{{ atm.clientId }}</span></div>
+          <div class="meta-row"><span class="meta-icon">🌐</span> <code>{{ atm.networkAddress }}</code></div>
+          <div class="meta-row"><span class="meta-icon">🏧</span> <span>{{ atm.hardwareTypeName ?? 'Unknown hardware' }}</span></div>
+          <div class="meta-row"><span class="meta-icon">🔌</span>
+            <span class="conn-badge" [ngClass]="'conn-' + atm.connectable">{{ connectableLabel(atm.connectable) }}</span>
+          </div>
+        </div>
+
+        <footer class="atm-card__actions">
+          <button class="icon-btn icon-btn--edit" title="Modifier" (click)="goEdit(atm.clientId); $event.stopPropagation()">✏️ Edit</button>
+          <button class="icon-btn icon-btn--del" title="Supprimer" (click)="confirmDelete(atm); $event.stopPropagation()">🗑 Delete</button>
+        </footer>
+      </article>
+    </div>
+
+    <div class="table-footer">
+      {{ filtered().length }} ATM(s) affiché(s)
+    </div>
+  </div>
+
+</div>

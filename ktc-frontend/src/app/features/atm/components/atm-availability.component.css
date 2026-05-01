@@ -1,0 +1,133 @@
+:host { display: block; }
+
+.page-wrapper {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  flex-wrap: wrap;
+}
+
+.title { color: var(--text); font-size: 13px; font-weight: 900; display: flex; gap: 10px; align-items: center; }
+.muted { color: var(--muted); font-weight: 800; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+.toolbar-right { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 12px; color: var(--muted); font-weight: 900; }
+.input {
+  height: 36px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 10px;
+  font-size: 13px;
+}
+.input:focus { outline: none; border-color: var(--brand-500); box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.col { padding: 0; overflow: hidden; }
+.col-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 900;
+  color: var(--text);
+  font-size: 13px;
+  background: var(--surface);
+}
+
+.list { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.list.compact { gap: 8px; }
+.row { display: grid; grid-template-columns: 1.6fr 1fr auto; gap: 12px; align-items: center; }
+.row-left .name { color: var(--text); font-weight: 900; font-size: 13px; }
+.row-left .meta { color: var(--muted); font-size: 12px; font-weight: 800; margin-top: 2px; }
+.row-right { color: var(--muted); font-size: 12px; font-weight: 900; }
+
+.bar {
+  height: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar.big { height: 12px; }
+.fill { height: 100%; width: 0; }
+.fill.neutral { background: rgba(148,163,184,.85); }
+.fill.warn { background: rgba(245,158,11,.85); }
+.fill.up { background: rgba(22,163,74,.85); }
+.fill.down { background: rgba(220,38,38,.85); }
+
+.cover {
+  padding: 0 14px 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.summary { padding: 0 14px 14px; display: grid; grid-template-columns: 1fr; gap: 10px; }
+.summary-item { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); padding: 10px 12px; }
+.summary-item .label { margin: 0; }
+.summary-item .value { color: var(--text); font-weight: 900; font-size: 14px; margin-top: 4px; }
+
+.subhead {
+  padding: 12px 14px 0;
+  font-weight: 900;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 14px 2px; }
+.kpi { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); padding: 10px 12px; }
+.kpi-title { color: var(--muted); font-size: 12px; font-weight: 900; }
+.kpi-value { color: var(--text); font-size: 18px; font-weight: 900; margin-top: 6px; }
+.kpi-sub { color: var(--muted); font-size: 12px; font-weight: 900; margin-top: 2px; }
+.kpi .bar { margin-top: 10px; }
+
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--muted);
+}
+.spinner {
+  width: 34px; height: 34px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-500);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-box {
+  display: flex;
+  align-items: center;
+  background: var(--danger-50);
+  border: 1px solid rgba(220,38,38,.25);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  color: #991b1b;
+  gap: 10px;
+}
+
+.empty { color: var(--muted); font-size: 12px; font-weight: 800; padding: 10px 0; }
+
+@media (max-width: 1100px) {
+  .page-wrapper { padding: 1rem; }
+  .grid { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 1.4fr 1fr auto; }
+  .kpis { grid-template-columns: 1fr; }
+}
+

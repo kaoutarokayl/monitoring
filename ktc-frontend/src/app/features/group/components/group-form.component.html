@@ -1,0 +1,93 @@
+<div class="form-panel">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="form-head">
+    <div>
+      <h2 class="form-title">{{ isEdit ? 'Modifier le groupe' : 'Nouveau groupe' }}</h2>
+      <p class="form-subtitle">
+        {{ isEdit ? 'Mise à jour : ' + group?.groupName : 'Créer un nouveau groupe d\'ATMs' }}
+      </p>
+    </div>
+    <button class="close-btn" (click)="cancel()" title="Fermer">✕</button>
+  </div>
+
+  <!-- ── Alerts ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="error()"      class="alert alert--error">⚠️ {{ error() }}</div>
+  <div *ngIf="successMsg()" class="alert alert--ok">✅ {{ successMsg() }}</div>
+
+  <!-- ── Form ────────────────────────────────────────────────────────────── -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+
+    <!-- ═══ Section : Identification ════════════════════════════════════════ -->
+    <div class="form-section card">
+      <h3 class="section-title">Identification</h3>
+      <div class="fields-row">
+
+        <div class="field field--full">
+          <label class="field-label" for="groupName">Nom du groupe <span class="req">*</span></label>
+          <input id="groupName" type="text" formControlName="groupName" placeholder="ex: Groupe Casablanca" />
+          <small *ngIf="f['groupName'].invalid && f['groupName'].touched" class="field-error">
+            Nom requis (min 2 caractères)
+          </small>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="groupTypeId">Type de groupe</label>
+          <select id="groupTypeId" formControlName="groupTypeId">
+            <option [value]="1">Tous les ATMs</option>
+            <option [value]="2">Manuel</option>
+            <option [value]="3">Schedulé</option>
+            <option [value]="4">Dynamique (requête)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="evaluationInterval">Intervalle d'évaluation (min)</label>
+          <input id="evaluationInterval" type="number" min="0" formControlName="evaluationInterval" placeholder="0" />
+        </div>
+
+      </div>
+
+      <!-- Checkbox -->
+      <div class="checkboxes-row">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="includeMothballed" />
+          <span>Inclure les ATMs désactivés (mothballed)</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ═══ Section : Description ════════════════════════════════════════════ -->
+    <div class="form-section card">
+      <h3 class="section-title">Description</h3>
+      <textarea
+        id="groupDescription"
+        formControlName="groupDescription"
+        rows="3"
+        placeholder="Description du groupe…"
+      ></textarea>
+    </div>
+
+    <!-- ═══ Section : Requête dynamique ══════════════════════════════════════ -->
+    <div class="form-section card" *ngIf="form.value.groupTypeId == 4">
+      <h3 class="section-title">Requête dynamique</h3>
+      <p class="section-hint">Requête SQL utilisée pour résoudre les membres du groupe (type 4 uniquement).</p>
+      <textarea
+        id="groupQuery"
+        formControlName="groupQuery"
+        rows="4"
+        placeholder="SELECT client_id FROM ..."
+        class="code-area"
+      ></textarea>
+    </div>
+
+    <!-- ═══ Actions ═════════════════════════════════════════════════════════ -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+        {{ isSaving() ? 'Enregistrement…' : (isEdit ? 'Mettre à jour' : 'Créer le groupe') }}
+      </button>
+    </div>
+
+  </form>
+</div>

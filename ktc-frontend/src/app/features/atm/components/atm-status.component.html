@@ -1,0 +1,96 @@
+<div class="atm-status-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Chargement des statuts...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    <div class="master-panel">
+      <h3 class="panel-title">Composants</h3>
+      <ul class="component-list">
+        @for (comp of uniqueComponents(); track comp.name) {
+          <li 
+            class="component-item" 
+            [class.active]="selectedComponent() === comp.name"
+            (click)="selectComponent(comp.name)">
+            <span class="status-dot" [ngClass]="getSeverityClass(comp.globalSeverity)"></span>
+            <span class="component-name">{{ comp.displayName }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+    
+    <div class="detail-panel">
+      <h3 class="panel-title">
+        {{ selectedComponentDisplayLabel() }} : {{ selectedComponentSummary()?.displayName ?? 'Sélectionnez un composant' }}
+      </h3>
+      
+      @if (selectedComponentSummary()) {
+        <nav class="subtab-nav">
+          @for (tab of availableSubTabs(); track tab.id) {
+            <button
+              type="button"
+              class="subtab-button"
+              [class.active]="activeSubTab() === tab.id"
+              (click)="selectSubTab(tab.id)">
+              {{ tab.label }}
+            </button>
+          }
+        </nav>
+
+        <div class="table-container">
+          @if (activeSubTab() === 'details' || activeSubTab() === 'status') {
+            @for (group of selectedComponentPropertiesGrouped(); track group.category) {
+              <div class="category-section">
+                <h4 class="category-title">{{ group.category }}</h4>
+                <table class="detail-table">
+                  <thead>
+                    <tr>
+                      <th class="col-status">Statut</th>
+                      <th>Propriété</th>
+                      <th>Valeur</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (prop of group.items; track prop.propertyName + '-' + prop.value) {
+                      <tr>
+                        <td class="col-status">
+                          <span class="status-dot" [ngClass]="getSeverityClass(prop.severity)"></span>
+                        </td>
+                        <td>{{ prop.propertyName }}</td>
+                        <td class="col-value">{{ prop.value }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          } @else if (activeSubTab() === 'app-counters') {
+            <app-app-counters-table
+              [clientId]="resolvedClientId()!"
+              [componentId]="selectedComponentSummary()!.id">
+            </app-app-counters-table>
+          } @else if (activeSubTab() === 'replenishment') {
+            <app-replenishment-table
+              [clientId]="resolvedClientId()!"
+              [componentId]="selectedComponentSummary()!.id">
+            </app-replenishment-table>
+          } @else if (activeSubTab() === 'xfs-counters') {
+            <app-xfs-counters
+              [clientId]="resolvedClientId()!"
+              [componentId]="selectedComponentSummary()!.id">
+            </app-xfs-counters>
+          }
+        </div>
+      } @else {
+        <div class="empty-selection">
+          <p>Veuillez sélectionner un composant à gauche pour voir ses propriétés.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

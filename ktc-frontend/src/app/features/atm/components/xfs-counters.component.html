@@ -1,0 +1,43 @@
+@if (isLoading()) {
+  <div class="subtab-state">Chargement des XFS Counters...</div>
+} @else if (error()) {
+  <div class="subtab-state subtab-state--error">{{ error() }}</div>
+} @else if (!hasAnyData()) {
+  <div class="subtab-state">Aucune donnée XFS disponible pour ce composant.</div>
+} @else {
+  <section class="xfs-section">
+    <h4 class="xfs-title">Logical View</h4>
+    @if (data().logicalView.length === 0) {
+      <div class="subtab-state">Aucune donnée logique.</div>
+    } @else {
+      <div class="subtab-table-wrap">
+        <table class="subtab-table">
+          <thead>
+            <tr>
+              <th>Number</th>
+              <th>Type</th>
+              <th>Currency Value</th>
+              <th>Unit Count</th>
+              <th>Total Value</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data().logicalView; track row.number + '-' + row.timestmp) {
+              <tr>
+                <td class="mono">{{ row.number }}</td>
+                <td>{{ getTypeMeaning(row.typeId) }}</td>
+                <td class="mono">{{ row.currencyValue != null ? (row.currencyValue + ' ' + (row.currencyCode || '')) : '-' }}</td>
+                <td class="mono">{{ row.unitCount ?? '-' }}</td>
+                <td class="mono">{{ row.totalValue != null ? (row.totalValue + ' ' + (row.currencyCode || '')) : '-' }}</td>
+                <td>{{ getStatusMeaning(row.statusId) }}</td>
+                <td class="mono">{{ row.timestmp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

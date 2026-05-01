@@ -1,0 +1,108 @@
+<div class="page-wrapper">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Branches</h1>
+      <p class="page-subtitle">Gestion des branches / agences</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-primary" (click)="goCreate()">
+        <span class="btn-icon">＋</span> Nouvelle branche
+      </button>
+    </div>
+  </div>
+
+  <!-- ── KPI strip ───────────────────────────────────────────────────────── -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalCount() }}</span>
+      <span class="kpi-label">Total branches</span>
+    </div>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="toolbar card">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Rechercher par nom, ID, displayId…"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="searchQuery.set($event)"
+    />
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement des branches…</p>
+  </div>
+
+  <!-- ── Error ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="error-box">
+    <span>⚠️ {{ error() }}</span>
+    <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading() && !error()" class="table-card card">
+    <div class="table-wrapper">
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th (click)="sort('branchId')">#ID {{ sortIcon('branchId') }}</th>
+            <th (click)="sort('branchName')">Nom {{ sortIcon('branchName') }}</th>
+            <th (click)="sort('displayId')">Display ID {{ sortIcon('displayId') }}</th>
+            <th (click)="sort('businessId')">Business ID {{ sortIcon('businessId') }}</th>
+            <th>Infos additionnelles</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Empty state -->
+          <tr *ngIf="filtered().length === 0">
+            <td colspan="6" class="empty-row">
+              <div class="empty-state">
+                <div class="empty-icon">🏢</div>
+                <p>Aucune branche trouvée</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rows -->
+          <tr *ngFor="let branch of filtered()" class="branch-row">
+            <td class="col-id">#{{ branch.branchId }}</td>
+
+            <td class="col-name">{{ branch.branchName }}</td>
+
+            <td>
+              <code *ngIf="branch.displayId" class="display-id">{{ branch.displayId }}</code>
+              <span *ngIf="!branch.displayId" class="muted">—</span>
+            </td>
+
+            <td class="col-business">
+              <span class="business-badge">{{ branch.businessId }}</span>
+            </td>
+
+<td class="col-info">
+  <span *ngIf="branch.additionalInfo" class="info-text" [title]="branch.additionalInfo">
+    {{ branch.additionalInfo | slice:0:60 }}{{ branch.additionalInfo.length > 60 ? '…' : '' }}
+  </span>
+  <span *ngIf="!branch.additionalInfo" class="muted">—</span>
+</td>
+
+            <td class="col-actions">
+              <button class="icon-btn icon-btn--edit" title="Modifier" (click)="goEdit(branch.branchId)">✏️</button>
+              <button class="icon-btn icon-btn--del"  title="Supprimer" (click)="confirmDelete(branch)">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      {{ filtered().length }} résultat(s) affiché(s)
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,147 @@
+<div class="page-wrapper">
+  <div class="page-head">
+    <div class="title-group">
+      <div>
+        <h2 class="page-title">Session / Transaction Data</h2>
+        <p class="page-subtitle">Recherche et audit transactionnel (limité à 500 résultats).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card toolbar">
+    <div class="toolbar-row">
+      <div class="toolbar-block">
+        <div class="block-title">Filtres</div>
+
+        <form [formGroup]="filterForm" class="filter-grid">
+          <label class="field">
+            <span class="label">From</span>
+            <input class="input" type="datetime-local" formControlName="from" />
+          </label>
+
+          <label class="field">
+            <span class="label">To</span>
+            <input class="input" type="datetime-local" formControlName="to" />
+          </label>
+
+          <label class="field">
+            <span class="label">Amount</span>
+            <input class="input" type="number" step="0.01" formControlName="amount" placeholder="ex: 100.00" />
+          </label>
+
+          <label class="field">
+            <span class="label">Type code</span>
+            <select class="input" formControlName="typeLookupId">
+              <option [ngValue]="null">All</option>
+              <option *ngFor="let it of typeCodes()" [ngValue]="it.id">{{ it.code }}</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Reason code</span>
+            <select class="input" formControlName="reasonLookupId">
+              <option [ngValue]="null">All</option>
+              <option *ngFor="let it of reasonCodes()" [ngValue]="it.id">{{ it.code }}</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Completion code</span>
+            <select class="input" formControlName="completionLookupId">
+              <option [ngValue]="null">All</option>
+              <option *ngFor="let it of completionCodes()" [ngValue]="it.id">{{ it.code }}</option>
+            </select>
+          </label>
+
+          <div class="actions">
+            <button class="btn btn-primary" type="button" (click)="applyFilter()" [disabled]="isSearching()">
+              Apply Filter
+            </button>
+            <button class="btn btn-secondary" type="button" (click)="loadLookups()" [disabled]="isLoadingLookups()">
+              Reload Lookups
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="toolbar-block">
+        <div class="block-title">Find</div>
+
+        <form [formGroup]="findForm" class="find-grid">
+          <label class="field">
+            <span class="label">Criteria</span>
+            <select class="input" formControlName="mode">
+              <option value="session">Session ID</option>
+              <option value="transaction">Transaction ID</option>
+              <option value="guid">Transaction GUID</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="label">Value</span>
+            <input class="input" formControlName="value" placeholder="30165 / 20127 / GUID" />
+          </label>
+
+          <div class="actions">
+            <button class="btn btn-primary" type="button" (click)="findDirect()" [disabled]="isSearching()">
+              Find
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div *ngIf="error()" class="error-box">
+      <span>⚠️ {{ error() }}</span>
+    </div>
+  </div>
+
+  <div class="card results">
+    <div class="results-head">
+      <div class="muted">
+        Results: <strong>{{ results().length }}</strong>
+      </div>
+      <div *ngIf="isSearching()" class="inline-loading">
+        <div class="spinner"></div>
+        <span>Searching…</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="dense-table">
+        <thead>
+          <tr>
+            <th>Session ID</th>
+            <th>Transaction ID</th>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th class="num">Amount</th>
+            <th>Completion</th>
+            <th>Reason</th>
+            <th class="center">Has EJ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of results()">
+            <td class="mono">{{ r.sessionId }}</td>
+            <td class="mono">{{ r.transactionId }}</td>
+            <td class="mono">{{ r.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+            <td>{{ r.type }}</td>
+            <td class="num mono">{{ r.amount }}</td>
+            <td>{{ r.completion }}</td>
+            <td>{{ r.reason }}</td>
+            <td class="center">
+              <span [class.ok]="r.hasEj" [class.ko]="!r.hasEj">{{ r.hasEj ? '✅' : '❌' }}</span>
+            </td>
+          </tr>
+          <tr *ngIf="results().length === 0">
+            <td colspan="8" class="empty">
+              Aucun résultat. Utilisez les filtres (avec dates) ou “Find”.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,75 @@
+<div class="panel">
+  <div class="filters">
+    <div class="field">
+      <label>From</label>
+      <input type="datetime-local" [value]="from()" (input)="from.set(($any($event.target)).value)" />
+    </div>
+    <div class="field">
+      <label>To</label>
+      <input type="datetime-local" [value]="to()" (input)="to.set(($any($event.target)).value)" />
+    </div>
+    <button class="btn" type="button" (click)="refresh()">Refresh</button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state">Chargement…</div>
+  } @else if (error()) {
+    <div class="state state--error">{{ error() }}</div>
+  } @else if (isEmpty()) {
+    <div class="state">Aucun log EJ sur la période (affichage d’une ligne exemple).</div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Effective</th>
+            <th>EJ Range</th>
+            <th>Transaction</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of getDisplayRows(); track row.transactionId + '-' + row.timestamp) {
+            <tr>
+              <td class="mono">{{ row.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+              <td>{{ row.type }}</td>
+              <td class="mono">{{ row.amount ?? '-' }}</td>
+              <td class="mono">{{ row.effectiveAmount ?? '-' }}</td>
+              <td class="mono">{{ row.ejStartId ?? '-' }} → {{ row.ejEndId ?? '-' }}</td>
+              <td class="mono">{{ row.transactionId || '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Effective</th>
+            <th>EJ Range</th>
+            <th>Transaction</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.transactionId) {
+            <tr>
+              <td class="mono">{{ row.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+              <td>{{ row.type }}</td>
+              <td class="mono">{{ row.amount ?? '-' }}</td>
+              <td class="mono">{{ row.effectiveAmount ?? '-' }}</td>
+              <td class="mono">{{ row.ejStartId ?? '-' }} → {{ row.ejEndId ?? '-' }}</td>
+              <td class="mono">{{ row.transactionId }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

@@ -1,0 +1,49 @@
+<div class="panel">
+  <div class="filters">
+    <div class="field">
+      <label>From</label>
+      <input type="datetime-local" [value]="from()" (input)="from.set(($any($event.target)).value)" />
+    </div>
+    <div class="field">
+      <label>To</label>
+      <input type="datetime-local" [value]="to()" (input)="to.set(($any($event.target)).value)" />
+    </div>
+    <button class="btn" type="button" (click)="refresh()">Refresh</button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state">Chargement…</div>
+  } @else if (error()) {
+    <div class="state state--error">{{ error() }}</div>
+  } @else if (isEmpty()) {
+    <div class="state">Aucune action sur la période sélectionnée.</div>
+  } @else {
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Command</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th>Finished</th>
+            <th>Last comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.actionId) {
+            <tr>
+              <td class="mono">{{ row.user || '-' }}</td>
+              <td>{{ row.command }}</td>
+              <td>{{ row.status }}</td>
+              <td class="mono">{{ row.started ? (row.started | date:'yyyy-MM-dd HH:mm:ss') : '-' }}</td>
+              <td class="mono">{{ row.finished ? (row.finished | date:'yyyy-MM-dd HH:mm:ss') : '-' }}</td>
+              <td>{{ row.lastComment || '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

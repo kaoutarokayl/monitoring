@@ -1,0 +1,71 @@
+<header class="app-header">
+
+  <!-- Brand -->
+  <div class="header-brand">
+    <div class="brand-mark">K</div>
+    <span class="brand-name">KTC Web</span>
+  </div>
+
+  <!-- Right actions -->
+  <div class="header-actions">
+
+    <!-- Administration -->
+    <div class="support-wrapper" (click)="goToAdministration()">
+      <button class="support-btn"><span>🧭</span> Administration</button>
+    </div>
+
+    <!-- Profile -->
+    <div class="profile-wrapper" (click)="toggleProfile($event)">
+
+      <!-- ❌ AVANT -->
+      <!-- user()?.username -->
+
+      <!-- ✅ APRÈS -->
+      <div class="avatar" [title]="user() ? user().username : 'Utilisateur'">
+        {{ userInitial() }}
+      </div>
+
+      <div class="profile-info">
+        <span class="profile-name">
+          {{ user() ? user().username : '—' }}
+        </span>
+        <span class="profile-role">{{ primaryRole() }}</span>
+      </div>
+
+      <span class="chevron" [class.open]="isProfileOpen()">&#8964;</span>
+    </div>
+
+    <!-- Dropdown -->
+    <div class="profile-dropdown" *ngIf="isProfileOpen()" (click)="$event.stopPropagation()">
+
+      <div class="dropdown-header">
+        <div class="dropdown-avatar">{{ userInitial() }}</div>
+        <div>
+          <div class="dropdown-name">
+            {{ user() ? user().username : '—' }}
+          </div>
+          <div class="dropdown-email">
+            {{ user() ? user().email : '' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- ❌ roles()?.length -->
+      <!-- ✅ roles().length -->
+      <div class="dropdown-roles" *ngIf="roles().length > 0">
+        <span class="roles-label">Rôles</span>
+        <div class="roles-list">
+          <span class="role-badge" *ngFor="let role of roles()">{{ role }}</span>
+        </div>
+      </div>
+
+      <div class="dropdown-divider"></div>
+
+      <button class="logout-btn" (click)="logout()">
+        <span class="logout-icon">⎋</span> Déconnexion
+      </button>
+
+    </div>
+
+  </div>
+</header>

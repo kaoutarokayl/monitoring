@@ -1,0 +1,6 @@
+@KtcWeb_HostAddress = http://localhost:5239
+
+GET {{KtcWeb_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

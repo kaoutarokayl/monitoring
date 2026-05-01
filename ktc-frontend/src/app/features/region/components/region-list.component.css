@@ -1,0 +1,340 @@
+:host {
+  display: block;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.page-wrapper {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--text);
+  margin: 0;
+}
+
+.head-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ── KPI ────────────────────────────────────────────────────────────────── */
+.kpi-strip {
+  display: flex;
+  gap: 12px;
+}
+
+.kpi-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.kpi-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* ── Toolbar ────────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.search-input:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+}
+
+/* ── Table ─────────────────────────────────────────────────────────────── */
+.table-card {
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.business-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.business-table thead tr {
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--border);
+}
+
+.business-table th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.business-table th:hover {
+  color: var(--brand-500);
+}
+
+.business-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.business-row:hover td {
+  background: rgba(79,70,229,.03);
+}
+
+/* ── Columns ───────────────────────────────────────────────────────────── */
+.col-id {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.col-name {
+  font-weight: 700;
+}
+
+.col-actions {
+  white-space: nowrap;
+}
+
+/* ── Name cell ─────────────────────────────────────────────────────────── */
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dot--ok {
+  background: var(--success-500);
+  box-shadow: 0 0 5px var(--success-500);
+}
+
+/* ── Badges ────────────────────────────────────────────────────────────── */
+.badge-level {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--brand-50);
+  color: var(--brand-500);
+  border: 1px solid var(--brand-100);
+}
+
+.parent-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.business-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--success-50);
+  color: #166534;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.muted-dash {
+  color: var(--muted);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.btn {
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.btn-primary {
+  background: var(--brand-500);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--brand-600);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-2);
+}
+
+.btn--sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
+/* ── Icon buttons ─────────────────────────────────────────────────────── */
+.icon-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.icon-btn--edit:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-100);
+}
+
+.icon-btn--del:hover {
+  background: var(--danger-50);
+  border-color: rgba(220,38,38,.25);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.table-footer {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+.empty-row td {
+  padding: 40px;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+/* ── Loading ───────────────────────────────────────────────────────────── */
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-500);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Error ─────────────────────────────────────────────────────────────── */
+.error-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--danger-50);
+  border: 1px solid rgba(220,38,38,.25);
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  color: #991b1b;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 1rem;
+  }
+
+  .kpi-strip {
+    flex-wrap: wrap;
+  }
+
+  .kpi-card {
+    flex: 1 1 120px;
+  }
+}

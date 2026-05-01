@@ -1,0 +1,256 @@
+<div class="general-container">
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement des informations générales...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error() && !isLoading()" class="alert alert--error">
+    ⚠️ {{ error() }}
+  </div>
+
+  <!-- Content -->
+  <ng-container *ngIf="!isLoading() && !error() && atm() as atmData">
+    
+    <!-- Header avec bouton Éditer -->
+    <div class="general-header">
+      <h2 class="section-title">Informations Générales</h2>
+      <button class="btn btn-edit" (click)="goEdit()" title="Modifier l'ATM">
+        ✏️ Modifier
+      </button>
+    </div>
+
+    <!-- Section : Identification -->
+    <div class="info-section card">
+      <h3 class="card-title">Identification</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Nom de l'ATM</label>
+          <div class="info-value">{{ atmData.clientName }}</div>
+        </div>
+        <div class="info-item">
+          <label>ID Unique</label>
+          <div class="info-value">{{ atmData.clientId }}</div>
+        </div>
+        <div class="info-item">
+          <label>GUID</label>
+          <div class="info-value mono">{{ atmData.ktcGuid }}</div>
+        </div>
+        <div class="info-item">
+          <label>Type Client</label>
+          <div class="info-value">{{ atmData.clientType }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section : Réseau -->
+    <div class="info-section card">
+      <h3 class="card-title">Configuration Réseau</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Adresse Réseau (IP)</label>
+          <div class="info-value mono">{{ atmData.networkAddress }}</div>
+        </div>
+        <div class="info-item">
+          <label>Connectivité</label>
+          <div class="info-value">{{ connectivityLabel() }}</div>
+        </div>
+        <div class="info-item">
+          <label>Fuseau Horaire</label>
+          <div class="info-value">{{ atmData.timezone }}</div>
+        </div>
+        <div class="info-item">
+          <label>Connecté</label>
+          <div class="info-value">
+            <span class="badge" [class.badge--ok]="atmData.connectable !== 1" [class.badge--neutral]="atmData.connectable === 1">
+              {{ atmData.connectable !== 1 ? 'Oui' : 'Non' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section : Localisation GPS -->
+    <div class="info-section card">
+      <h3 class="card-title">Localisation GPS</h3>
+      <div class="info-grid">
+        <div class="info-item full">
+          <label>Coordonnées</label>
+          <div class="info-value">
+            <span class="coords-badge">
+              📌 {{ atmData.latitude | number:'1.5-6' }}, {{ atmData.longitude | number:'1.5-6' }}
+            </span>
+            <a [href]="googleMapsUrl()" target="_blank" rel="noopener" class="btn btn-link">
+              Voir sur Google Maps ↗
+            </a>
+          </div>
+        </div>
+        <div class="info-item">
+          <label>Latitude</label>
+          <div class="info-value mono">{{ atmData.latitude | number:'1.5-6' }}</div>
+        </div>
+        <div class="info-item">
+          <label>Longitude</label>
+          <div class="info-value mono">{{ atmData.longitude | number:'1.5-6' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section : Organisation -->
+    <div class="info-section card">
+      <h3 class="card-title">Organisation</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Business</label>
+          <div class="info-value">{{ businessName() }}</div>
+        </div>
+        <div class="info-item">
+          <label>Branche</label>
+          <div class="info-value">{{ branchName() }}</div>
+        </div>
+        <div class="info-item">
+          <label>Type de Matériel</label>
+          <div class="info-value">{{ hardwareTypeName() }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section : État -->
+    <div class="info-section card">
+      <h3 class="card-title">État</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Statut</label>
+          <div class="info-value">
+            <span class="badge" [class.badge--ok]="atmData.active" [class.badge--down]="!atmData.active">
+              {{ atmData.active ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+        </div>
+        <div class="info-item">
+          <label>Détails Inconnus</label>
+          <div class="info-value">
+            <span class="badge" [class.badge--warning]="atmData.detailsUnknown" [class.badge--ok]="!atmData.detailsUnknown">
+              {{ atmData.detailsUnknown ? 'Oui' : 'Non' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section : Dernier Contact Client -->
+    <div class="info-section card">
+      <h3 class="card-title">Dernier Contact Client</h3>
+
+      <!-- Aucune donnée -->
+      <div *ngIf="!lastClientContact()" class="no-contact-banner">
+        <span class="no-contact-icon">⚠</span>
+        <span>Aucun contact enregistré pour cet ATM.</span>
+      </div>
+
+      <ng-container *ngIf="lastClientContact() as contactData">
+
+        <!-- Statut "Last Seen" en bannière -->
+        <div class="last-seen-banner">
+          <div class="last-seen-dot" [class.dot--online]="isRecentContact(contactData.timestmp)" [class.dot--offline]="!isRecentContact(contactData.timestmp)"></div>
+          <div class="last-seen-summary">
+            <span class="last-seen-label">Dernière vue :</span>
+            <span class="last-seen-time">
+              {{ contactData.timestmp ? (contactData.timestmp | date:'dd/MM/yyyy HH:mm:ss') : 'N/A' }}
+            </span>
+            <span class="last-seen-offset" *ngIf="contactData.timeoffset !== 0">(UTC{{ contactData.timeoffset >= 0 ? '+' : '' }}{{ contactData.timeoffset }})</span>
+          </div>
+          <div class="last-seen-next">
+            <span class="last-seen-label">Prochain attendu :</span>
+            <span class="last-seen-time">
+              {{ contactData.nextMessageExpected ? (contactData.nextMessageExpected | date:'dd/MM/yyyy HH:mm:ss') : 'N/A' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Métriques de messagerie -->
+        <div class="info-grid" style="margin-top: 16px;">
+          <div class="info-item">
+            <label>Dernier ID Message</label>
+            <div class="info-value mono">{{ contactData.lastMsgId }}</div>
+          </div>
+          <div class="info-item">
+            <label>Réponse Dernier Message</label>
+            <div class="info-value mono">{{ contactData.lastMsgReply || 'N/A' }}</div>
+          </div>
+          <div class="info-item">
+            <label>File d'Attente</label>
+            <div class="info-value mono">{{ contactData.msgQueueSize }} message(s)</div>
+          </div>
+          <div class="info-item">
+            <label>Message Créé</label>
+            <div class="info-value mono">
+              {{ contactData.msgCreatedTs ? (contactData.msgCreatedTs | date:'dd/MM/yyyy HH:mm:ss') : 'N/A' }}
+            </div>
+          </div>
+          <div class="info-item">
+            <label>Flag Replay</label>
+            <div class="info-value">
+              <span class="badge" [class.badge--ok]="!contactData.replayFlag" [class.badge--warning]="contactData.replayFlag">
+                {{ contactData.replayFlag ? 'Actif' : 'Inactif' }}
+              </span>
+            </div>
+          </div>
+          <div class="info-item">
+            <label>Auth. Mutuelle</label>
+            <div class="info-value">
+              <span class="badge" [class.badge--ok]="contactData.mutualAuth" [class.badge--down]="!contactData.mutualAuth">
+                {{ contactData.mutualAuth ? 'Activée' : 'Désactivée' }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="contactData.msgRejectedInfo" class="info-item full">
+            <label>Message Rejeté</label>
+            <div class="info-value mono alert-inline">{{ contactData.msgRejectedInfo }}</div>
+          </div>
+        </div>
+
+        <!-- Tableau style desktop : User / Time / Comment -->
+        <div class="contact-log-table-wrapper">
+          <table class="contact-log-table">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Horodatage</th>
+                <th>Commentaire</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-user">System</td>
+                <td class="col-time">{{ contactData.timestmp ? (contactData.timestmp | date:'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
+                <td class="col-comment">
+                  <span *ngIf="!contactData.msgRejectedInfo && contactData.timestmp">
+                    Client vu pour la dernière fois le {{ contactData.timestmp | date:'dd/MM/yyyy' }} à {{ contactData.timestmp | date:'HH:mm:ss' }} (UTC{{ contactData.timeoffset >= 0 ? '+' : '' }}{{ contactData.timeoffset }})
+                  </span>
+                  <span *ngIf="!contactData.msgRejectedInfo && !contactData.timestmp">
+                    Aucune date de dernier contact disponible.
+                  </span>
+                  <span *ngIf="contactData.msgRejectedInfo" class="text-warning">
+                    Message rejeté : {{ contactData.msgRejectedInfo }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </ng-container>
+    </div>
+
+    <!-- Section : Commentaires -->
+    <div *ngIf="atmData.comments" class="info-section card">
+      <h3 class="card-title">Commentaires</h3>
+      <div class="comments-box">{{ formattedComments() }}</div>
+    </div>
+
+  </ng-container>
+
+</div>

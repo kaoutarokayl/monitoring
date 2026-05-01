@@ -1,0 +1,178 @@
+<div class="page-wrapper">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <button class="back-btn" (click)="cancel()">← Retour</button>
+      <h1 class="page-title">
+        {{ isEdit() ? 'Modifier la Region' : 'Nouvelle Region' }}
+      </h1>
+      <p class="page-subtitle">
+        {{ isEdit() ? 'Mise à jour de la Region #' + editId() : 'Enregistrer une nouvelle region' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement…</p>
+  </div>
+
+  <!-- ── Alerts ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="alert alert--error">
+    ⚠️ {{ error() }}
+  </div>
+
+  <div *ngIf="successMsg()" class="alert alert--ok">
+    ✅ {{ successMsg() }}
+  </div>
+
+  <!-- ── Form ────────────────────────────────────────────────────────────── -->
+  <form
+    *ngIf="!isLoading()"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="form-grid"
+  >
+
+    <!-- ═══ Section : Identification ════════════════════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Identification</h2>
+
+      <div class="fields-row">
+
+        <!-- Region Name -->
+        <div class="field">
+          <label class="field-label" for="regionName">
+            Nom de la Region <span class="req">*</span>
+          </label>
+
+          <input
+            id="regionName"
+            type="text"
+            formControlName="regionName"
+            placeholder="ex: Casablanca, Région Nord…"
+          />
+
+          <small
+            *ngIf="f['regionName'].invalid && f['regionName'].touched"
+            class="field-error"
+          >
+            Nom requis (min 2 caractères)
+          </small>
+        </div>
+
+        <!-- Display ID -->
+        <div class="field">
+          <label class="field-label" for="displayId">Display ID</label>
+          <input
+            id="displayId"
+            type="text"
+            formControlName="displayId"
+            placeholder="ex: REG-001"
+          />
+        </div>
+
+        <!-- Business -->
+        <div class="field">
+          <label class="field-label" for="businessId">
+            Business <span class="req">*</span>
+          </label>
+
+          <select
+            id="businessId"
+            formControlName="businessId"
+            [class.invalid]="f['businessId'].invalid && f['businessId'].touched"
+          >
+            <option [ngValue]="0" disabled>— Sélectionner —</option>
+
+            <option *ngFor="let b of businesses()" [ngValue]="b.businessId">
+              {{ b.businessName }}
+            </option>
+          </select>
+
+          <small
+            *ngIf="f['businessId'].invalid && f['businessId'].touched"
+            class="field-error"
+          >
+            Veuillez sélectionner un business
+          </small>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ Section : Configuration régionale ═══════════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Configuration régionale</h2>
+
+      <div class="fields-row">
+
+        <!-- Region Level -->
+        <div class="field">
+          <label class="field-label" for="regionLevel">
+            Niveau de région <span class="req">*</span>
+          </label>
+
+          <select id="regionLevel" formControlName="regionLevel">
+            <option [ngValue]="1">Niveau 1</option>
+            <option [ngValue]="2">Niveau 2</option>
+            <option [ngValue]="3">Niveau 3</option>
+            <option [ngValue]="4">Niveau 4</option>
+            <option [ngValue]="5">Niveau 5</option>
+          </select>
+        </div>
+
+        <!-- Parent Region -->
+        <div class="field">
+          <label class="field-label" for="parentRegionId">
+            Parent Region ID
+          </label>
+
+          <input
+            id="parentRegionId"
+            type="number"
+            min="0"
+            formControlName="parentRegionId"
+          />
+
+          <small class="field-hint">
+            0 si aucune région parente
+          </small>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ Section : Informations complémentaires ══════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Informations complémentaires</h2>
+
+      <textarea
+        id="additionalInfo"
+        formControlName="additionalInfo"
+        rows="4"
+        placeholder="Notes internes, XML ou JSON…"
+      ></textarea>
+    </div>
+
+    <!-- ═══ Actions ═════════════════════════════════════════════════════════ -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">
+        Annuler
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="isSaving()"
+      >
+        {{ isSaving()
+          ? 'Enregistrement…'
+          : (isEdit() ? 'Mettre à jour' : 'Créer la Region') }}
+      </button>
+    </div>
+
+  </form>
+</div>

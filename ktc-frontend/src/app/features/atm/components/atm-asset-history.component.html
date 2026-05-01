@@ -1,0 +1,49 @@
+<div class="atm-status-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Chargement de l'historique...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    <div class="detail-panel full-width">
+      <h3 class="panel-title">Historique des actifs matériels</h3>
+      
+      <div class="table-container">
+        @if (historyData().length === 0) {
+          <div class="empty-state">Aucun historique disponible pour cet ATM.</div>
+        } @else {
+          <table class="detail-table history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Utilisateur</th>
+                <th>Composant</th>
+                <th>Propriété</th>
+                <th>Ancienne Valeur</th>
+                <th>Nouvelle Valeur</th>
+                <th>Commentaire</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of historyData(); track item.timestamp + item.propertyName) {
+                <tr>
+                  <td class="date-col">{{ item.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                  <td><span class="badge-user">{{ item.user }}</span></td>
+                  <td><strong>{{ item.componentName }}</strong></td>
+                  <td>{{ item.propertyName }}</td>
+                  <td><span class="val-badge old-val" [title]="item.oldValue">{{ item.oldValue }}</span></td>
+                  <td><span class="val-badge new-val" [title]="item.newValue">{{ item.newValue }}</span></td>
+                  <td class="comment-col" [title]="item.comment">{{ item.comment }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,167 @@
+<aside class="sidebar" [class.collapsed]="layoutService.isSidebarCollapsed()">
+  <div class="sidebar-header">
+    <span class="sidebar-title" *ngIf="!layoutService.isSidebarCollapsed()">Navigation</span>
+    <button class="toggle-btn" (click)="layoutService.toggleSidebar()" title="Toggle Sidebar">
+      {{ layoutService.isSidebarCollapsed() ? '▶' : '◀' }}
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" *ngIf="!layoutService.isSidebarCollapsed()">
+    <button class="tab-btn"
+            [class.active]="activeTab() === 'groups'"
+            (click)="setTab('groups')">
+      👥 Groupes
+    </button>
+
+    <button class="tab-btn"
+            [class.active]="activeTab() === 'hierarchy'"
+            (click)="setTab('hierarchy')">
+      🏦 Business/Branch
+    </button>
+  </div>
+
+  <!-- ================= GROUPS ================= -->
+  <div class="tab-content" *ngIf="!layoutService.isSidebarCollapsed() && activeTab() === 'groups'">
+
+    <div class="loading-state" *ngIf="loadingGroups()">
+      <div class="spinner-sm"></div>
+      <span>Chargement…</span>
+    </div>
+
+    <ul class="tree-list" *ngIf="!loadingGroups()">
+
+      <li class="tree-node" *ngFor="let group of groups()">
+
+        <!-- GROUP -->
+        <div class="tree-row"
+             (click)="toggleGroup(group.groupId)"
+             [class.expanded]="isGroupExpanded(group.groupId)">
+
+          <span class="tree-arrow">
+            {{ isGroupExpanded(group.groupId) ? '▾' : '▸' }}
+          </span>
+
+          <span class="node-icon">🗂️</span>
+          <span class="node-label">{{ group.groupName }}</span>
+
+          <div class="spinner-sm"
+               *ngIf="loadingGroupId() === group.groupId">
+          </div>
+        </div>
+
+        <!-- CLIENTS -->
+        <ul class="tree-children" *ngIf="isGroupExpanded(group.groupId)">
+
+          <li class="leaf-node"
+              *ngFor="let client of getGroupClients(group.groupId)">
+
+            <span class="status-dot"
+                  [class.dot-ok]="client.active"
+                  [class.dot-down]="!client.active">
+            </span>
+
+            <span class="node-label">{{ client.clientName }}</span>
+            <code class="node-ip">{{ client.networkAddress }}</code>
+          </li>
+
+          <li class="leaf-empty"
+              *ngIf="!loadingGroupId() && getGroupClients(group.groupId).length === 0">
+            Aucun ATM
+          </li>
+
+        </ul>
+      </li>
+
+      <li class="empty-tree" *ngIf="groups().length === 0">
+        Aucun groupe
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- ================= HIERARCHY ================= -->
+  <div class="tab-content" *ngIf="!layoutService.isSidebarCollapsed() && activeTab() === 'hierarchy'">
+
+    <div class="loading-state" *ngIf="loadingHierarchy()">
+      <div class="spinner-sm"></div>
+      <span>Chargement…</span>
+    </div>
+
+    <ul class="tree-list" *ngIf="!loadingHierarchy()">
+
+      <li class="tree-node" *ngFor="let biz of businesses()">
+
+        <!-- BUSINESS -->
+        <div class="tree-row biz-row"
+             (click)="toggleBusiness(biz.businessId)"
+             [class.expanded]="isBusinessExpanded(biz.businessId)">
+
+          <span class="tree-arrow">
+            {{ isBusinessExpanded(biz.businessId) ? '▾' : '▸' }}
+          </span>
+
+          <span class="node-icon">💼</span>
+          <span class="node-label">{{ biz.businessName }}</span>
+        </div>
+
+        <!-- BRANCHES -->
+        <ul class="tree-children" *ngIf="isBusinessExpanded(biz.businessId)">
+
+          <li class="tree-node" *ngFor="let branch of biz.branches">
+
+            <div class="tree-row branch-row"
+                 (click)="toggleBranch(branch.branchId)"
+                 [class.expanded]="isBranchExpanded(branch.branchId)">
+
+              <span class="tree-arrow">
+                {{ isBranchExpanded(branch.branchId) ? '▾' : '▸' }}
+              </span>
+
+              <span class="node-icon">🏢</span>
+              <span class="node-label">{{ branch.branchName }}</span>
+            </div>
+
+            <!-- CLIENTS -->
+            <ul class="tree-children" *ngIf="isBranchExpanded(branch.branchId)">
+
+              <li class="leaf-node"
+                  *ngFor="let client of branch.clients">
+
+                <span class="status-dot"
+                      [class.dot-ok]="client.active"
+                      [class.dot-down]="!client.active">
+                </span>
+
+                <span class="node-label">{{ client.clientName }}</span>
+                <code class="node-ip">{{ client.networkAddress }}</code>
+              </li>
+
+              <li class="leaf-empty" *ngIf="branch.clients.length === 0">
+                Aucun ATM
+              </li>
+
+            </ul>
+
+          </li>
+
+          <li class="leaf-empty" *ngIf="biz.branches.length === 0">
+            Aucune branche
+          </li>
+
+        </ul>
+
+      </li>
+
+      <li class="empty-tree" *ngIf="businesses().length === 0">
+        Aucune donnée
+      </li>
+
+    </ul>
+  </div>
+
+  <div class="collapsed-placeholder" *ngIf="layoutService.isSidebarCollapsed()">
+    <span>☰</span>
+  </div>
+
+</aside>

@@ -1,0 +1,12 @@
+@if (isLoggedIn()) {
+  <app-header></app-header>
+  <div class="app-layout">
+    <app-sidebar></app-sidebar>
+    <main class="app-body">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+}
+@if (!isLoggedIn()) {
+  <router-outlet></router-outlet>
+}

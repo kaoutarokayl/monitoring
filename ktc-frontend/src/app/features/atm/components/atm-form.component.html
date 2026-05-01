@@ -1,0 +1,240 @@
+<div class="page-wrapper">
+
+    <!-- ── Header ──────────────────────────────────────────────────────────── -->
+    <div class="page-head">
+      <div>
+        <button class="back-btn" (click)="cancel()">← Retour</button>
+        <h1 class="page-title">{{ isEdit() ? 'Modifier l\'ATM' : 'Nouvel ATM' }}</h1>
+        <p class="page-subtitle">
+          {{ isEdit() ? 'Mise à jour de l\'ATM #' + editId() : 'Enregistrer un nouveau distributeur' }}
+        </p>
+      </div>
+    </div>
+  
+    <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+    <div *ngIf="isLoading()" class="state-box">
+      <div class="spinner"></div>
+      <p>Chargement…</p>
+    </div>
+  
+    <!-- ── Error / Success ─────────────────────────────────────────────────── -->
+    <div *ngIf="error() && !isLoading()" class="alert alert--error">⚠️ {{ error() }}</div>
+    <div *ngIf="successMsg()"            class="alert alert--ok">✅ {{ successMsg() }}</div>
+  
+    <!-- ── Form ────────────────────────────────────────────────────────────── -->
+    <form
+      *ngIf="!isLoading()"
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      class="form-grid"
+    >
+  
+      <!-- ═══ Section : Identification ════════════════════════════════════════ -->
+      <div class="form-section card">
+        <h2 class="section-title">Identification</h2>
+        <div class="fields-row">
+  
+          <div class="field">
+            <label class="field-label" for="clientName">Nom de l'ATM <span class="req">*</span></label>
+            <input id="clientName" type="text" formControlName="clientName" placeholder="ex: ATM Casablanca Centre" />
+            <small *ngIf="f['clientName'].invalid && f['clientName'].touched" class="field-error">
+              Nom requis (min 2 caractères)
+            </small>
+          </div>
+  
+          <div class="field">
+            <label class="field-label" for="networkAddress">Adresse réseau <span class="req">*</span></label>
+            <input id="networkAddress" type="text" formControlName="networkAddress" placeholder="ex: 192.168.1.10" />
+            <small *ngIf="f['networkAddress'].invalid && f['networkAddress'].touched" class="field-error">
+              Adresse réseau requise
+            </small>
+          </div>
+  
+          <div class="field">
+            <label class="field-label" for="connectable">Connectivité</label>
+            <select id="connectable" formControlName="connectable">
+              <option [value]="1">Non connectable</option>
+              <option [value]="2">IP Statique</option>
+              <option [value]="3">IP Dynamique</option>
+            </select>
+          </div>
+  
+          <div class="field">
+            <label class="field-label" for="timezone">Fuseau horaire</label>
+            <input id="timezone" type="text" formControlName="timezone" placeholder="ex: UTC, Europe/Paris" />
+          </div>
+  
+        </div>
+  
+        <!-- Checkboxes -->
+        <div class="checkboxes-row">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="active" />
+            <span>Actif</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="detailsUnknown" />
+            <span>Détails inconnus</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="hypervisorActive" />
+            <span>Hyperviseur actif</span>
+          </label>
+        </div>
+      </div>
+  
+      <!-- ═══ Section : Localisation GPS ══════════════════════════════════════ -->
+      <div class="form-section card">
+        <h2 class="section-title">Localisation GPS</h2>
+
+        <!-- Coords fields + pick button -->
+        <div class="gps-row">
+          <div class="field">
+            <label class="field-label" for="latitude">Latitude <span class="req">*</span></label>
+            <input id="latitude" type="number" step="0.000001" formControlName="latitude" placeholder="ex: 33.5731" />
+            <small *ngIf="f['latitude'].invalid && f['latitude'].touched" class="field-error">
+              Entre -90 et 90
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="longitude">Longitude <span class="req">*</span></label>
+            <input id="longitude" type="number" step="0.000001" formControlName="longitude" placeholder="ex: -7.5898" />
+            <small *ngIf="f['longitude'].invalid && f['longitude'].touched" class="field-error">
+              Entre -180 et 180
+            </small>
+          </div>
+
+          <!-- Map picker button -->
+          <div class="field field--pick-btn">
+            <label class="field-label">&nbsp;</label>
+            <button type="button" class="btn btn-map-pick" (click)="openMapPicker()">
+              📍 Choisir sur la carte
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview strip (shown when coords are non-zero) -->
+        <div class="coords-preview" *ngIf="hasCoords()">
+          <span class="coords-badge">
+            📌 {{ form.value.latitude | number:'1.5-5' }},  {{ form.value.longitude | number:'1.5-5' }}
+          </span>
+          <a
+            class="coords-link"
+            [href]="googleMapsUrl()"
+            target="_blank"
+            rel="noopener"
+          >Voir sur Google Maps ↗</a>
+        </div>
+      </div>
+  
+      <!-- ═══ Section : Organisation ══════════════════════════════════════════ -->
+      <div class="form-section card">
+        <h2 class="section-title">Organisation</h2>
+        <div class="fields-row">
+  
+          <div class="field">
+            <label class="field-label" for="businessId">Business</label>
+            <select id="businessId" formControlName="businessId">
+              <option [value]="0">— Sélectionner —</option>
+              <option *ngFor="let b of businesses()" [value]="b.businessId">{{ b.businessName }}</option>
+            </select>
+          </div>
+  
+          <div class="field">
+            <label class="field-label" for="branchId">Branche</label>
+            <select id="branchId" formControlName="branchId">
+              <option [value]="0">— Sélectionner —</option>
+              <option *ngFor="let b of branches()" [value]="b.branchId">{{ b.branchName }}</option>
+            </select>
+          </div>
+  
+          <div class="field">
+            <label class="field-label" for="hardwareTypeId">Type de hardware</label>
+            <select id="hardwareTypeId" formControlName="hardwareTypeId">
+              <option [value]="0">— Sélectionner —</option>
+              <option *ngFor="let h of hardwareTypes()" [value]="h.hardwareTypeId">{{ h.name }}</option>
+            </select>
+          </div>
+  
+        </div>
+      </div>
+  
+      <!-- ═══ Section : Commentaires ══════════════════════════════════════════ -->
+      <div class="form-section card">
+        <h2 class="section-title">Commentaires</h2>
+        <textarea
+          id="comments"
+          formControlName="comments"
+          rows="4"
+          placeholder="Notes internes, informations techniques…"
+        ></textarea>
+      </div>
+  
+      <!-- ═══ Actions ═════════════════════════════════════════════════════════ -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          {{ isSaving() ? 'Enregistrement…' : (isEdit() ? 'Mettre à jour' : 'Créer l\'ATM') }}
+        </button>
+      </div>
+  
+    </form>
+  </div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     MAP PICKER MODAL
+     ════════════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" *ngIf="mapPickerOpen()" (click)="closeMapPicker()"></div>
+
+<div class="modal-panel" *ngIf="mapPickerOpen()">
+
+  <!-- Modal header -->
+  <div class="modal-header">
+    <div>
+      <h2 class="modal-title">📍 Choisir l'emplacement</h2>
+      <p class="modal-sub">Cliquez sur la carte pour placer le marqueur</p>
+    </div>
+    <button class="modal-close" (click)="closeMapPicker()">✕</button>
+  </div>
+
+  <!-- Search bar inside modal -->
+  <div class="modal-search">
+    <input
+      #searchInput
+      class="modal-search-input"
+      type="text"
+      placeholder="🔍  Rechercher une adresse ou ville…"
+      (keydown.enter)="geocodeAddress(searchInput.value)"
+    />
+    <button class="btn-geocode" (click)="geocodeAddress(searchInput.value)">Rechercher</button>
+  </div>
+
+  <!-- Map -->
+  <div id="picker-map" class="picker-map"></div>
+
+  <!-- Current picked coords -->
+  <div class="modal-coords">
+    <span *ngIf="pickedLat() !== null; else noCoords">
+      📌 <strong>{{ pickedLat() | number:'1.5-5' }}</strong>,
+         <strong>{{ pickedLng() | number:'1.5-5' }}</strong>
+    </span>
+    <ng-template #noCoords>
+      <span class="modal-coords-hint">Aucune position sélectionnée</span>
+    </ng-template>
+  </div>
+
+  <!-- Modal footer -->
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="closeMapPicker()">Annuler</button>
+    <button
+      class="btn btn-primary"
+      [disabled]="pickedLat() === null"
+      (click)="confirmMapPick()"
+    >
+      ✅ Confirmer la position
+    </button>
+  </div>
+
+</div>

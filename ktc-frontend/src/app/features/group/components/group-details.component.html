@@ -1,0 +1,172 @@
+﻿<!-- ── Loading ──────────────────────────────────────────────────────────── -->
+<div *ngIf="isLoading()" class="state-box">
+  <div class="spinner"></div>
+  <p>Chargement du groupe…</p>
+</div>
+
+<!-- ── Error ────────────────────────────────────────────────────────────── -->
+<div *ngIf="error() && !isLoading()" class="error-box">
+  ⚠️ {{ error() }}
+  <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
+</div>
+
+<!-- ── Contenu ──────────────────────────────────────────────────────────── -->
+<div *ngIf="!isLoading() && !error() && groupDetails()" class="details-panel">
+
+  <!-- ── Header groupe ─────────────────────────────────────────────────── -->
+  <div class="details-head">
+    <div>
+      <h2 class="details-title">{{ groupDetails()!.groupName }}</h2>
+      <div class="details-meta">
+        <span class="type-badge type-{{ groupDetails()!.groupTypeId ?? 0 }}">{{ groupTypeLabel() }}</span>
+        <span *ngIf="groupDetails()!.evaluationInterval" class="meta-item">
+          ⏱ {{ groupDetails()!.evaluationInterval }}min
+        </span>
+        <span *ngIf="groupDetails()!.includeMothballed" class="meta-item meta-warn">
+          ⚠ Inclut désactivés
+        </span>
+      </div>
+    </div>
+    <div class="head-kpis">
+      <div class="kpi-chip">
+        <span class="kpi-chip-val">{{ groupDetails()!.clients?.length ?? 0 }}</span>
+        <span class="kpi-chip-lbl">ATMs</span>
+      </div>
+      <div class="kpi-chip kpi-chip--ok">
+        <span class="kpi-chip-val">{{ (groupDetails()!.clients ?? []).filter(c => c.active).length }}</span>
+        <span class="kpi-chip-lbl">Actifs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Description / requête ─────────────────────────────────────────── -->
+  <div class="info-strip" *ngIf="groupDetails()!.groupDescription || groupDetails()!.groupQuery">
+    <div *ngIf="groupDetails()!.groupDescription" class="info-block">
+      <span class="info-label">Description</span>
+      <p class="info-value">{{ groupDetails()!.groupDescription }}</p>
+    </div>
+    <div *ngIf="groupDetails()!.groupQuery" class="info-block">
+      <span class="info-label">Requête</span>
+      <code class="info-code">{{ groupDetails()!.groupQuery }}</code>
+    </div>
+  </div>
+
+  <!-- ── Section Clients ───────────────────────────────────────────────── -->
+  <div class="clients-section card">
+    <div class="clients-head">
+      <h3 class="section-title">ATMs membres</h3>
+      <button class="btn btn-sm-success" (click)="openAddModal()">
+        ＋ Ajouter un ATM
+      </button>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!groupDetails()!.clients || groupDetails()!.clients!.length === 0" class="empty-clients">
+      <div class="empty-icon">📡</div>
+      <p>Aucun ATM dans ce groupe</p>
+      <button class="btn btn-primary btn--sm" (click)="openAddModal()">Ajouter le premier ATM</button>
+    </div>
+
+    <!-- Liste clients -->
+    <div class="clients-list" *ngIf="groupDetails()!.clients && groupDetails()!.clients!.length > 0">
+      <div class="client-row" *ngFor="let client of groupDetails()!.clients">
+        <div class="client-status-dot"
+          [class.dot--ok]="client.active"
+          [class.dot--down]="!client.active">
+        </div>
+        <div class="client-info">
+          <div class="client-name">{{ client.clientName }}</div>
+          <div class="client-sub">
+            <code class="client-ip">{{ client.networkAddress }}</code>
+            <span *ngIf="client.hardwareTypeName" class="client-hw">{{ client.hardwareTypeName }}</span>
+          </div>
+        </div>
+        <div class="client-right">
+          <span class="status-badge" [class.badge--ok]="client.active" [class.badge--down]="!client.active">
+            {{ client.active ? 'Actif' : 'Inactif' }}
+          </span>
+          <button class="icon-btn icon-btn--del" title="Retirer du groupe" (click)="removeClient(client.clientId)">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MODAL : Ajouter un ATM
+════════════════════════════════════════════════════════════════════════════ -->
+<div *ngIf="showAddModal()" class="modal-overlay" (click)="closeAddModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <h3 class="modal-title">Ajouter un ATM au groupe</h3>
+      <button class="close-btn" (click)="closeAddModal()">✕</button>
+    </div>
+
+    <!-- Recherche -->
+    <div class="modal-search">
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Rechercher par nom, IP, ID…"
+        [(ngModel)]="addSearch"
+        (ngModelChange)="addSearch.set($event)"
+        autofocus
+      />
+    </div>
+
+    <!-- Loading ATMs -->
+    <div *ngIf="loadingAtms()" class="state-box">
+      <div class="spinner"></div>
+      <p>Chargement des ATMs…</p>
+    </div>
+
+    <!-- Liste ATMs disponibles -->
+    <div *ngIf="!loadingAtms()" class="modal-list">
+
+      <div *ngIf="availableAtms().length === 0" class="empty-state">
+        <p>Aucun ATM disponible à ajouter</p>
+      </div>
+
+      <div *ngFor="let atm of availableAtms()" class="atm-row">
+        <input
+          type="checkbox"
+          class="atm-checkbox"
+          [checked]="isSelected(atm.clientId)"
+          (change)="toggleSelection(atm.clientId)"
+        />
+        <div class="client-status-dot"
+          [class.dot--ok]="atm.active"
+          [class.dot--down]="!atm.active">
+        </div>
+        <div class="client-info">
+          <div class="client-name">#{{ atm.clientId }} — {{ atm.clientName }}</div>
+          <div class="client-sub">
+            <code class="client-ip">{{ atm.networkAddress }}</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="selection-count" *ngIf="selectedClientIds().size > 0">
+        {{ selectedClientIds().size }} sélectionné{{ selectedClientIds().size > 1 ? 's' : '' }}
+      </div>
+      <button
+        class="btn btn-secondary"
+        (click)="closeAddModal()"
+        [disabled]="isAddingBulk()"
+      >
+        Fermer
+      </button>
+      <button
+        class="btn btn-success"
+        (click)="addSelectedClients()"
+        [disabled]="selectedClientIds().size === 0 || isAddingBulk()"
+      >
+        {{ isAddingBulk() ? '…' : '＋ Ajouter (' + selectedClientIds().size + ')' }}
+      </button>
+    </div>
+  </div>
+</div>

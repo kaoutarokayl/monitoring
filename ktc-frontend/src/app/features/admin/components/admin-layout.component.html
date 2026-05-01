@@ -1,0 +1,34 @@
+<div class="admin-container">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" [class.collapsed]="layoutService.isSidebarCollapsed()">
+    <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 *ngIf="!layoutService.isSidebarCollapsed()">Administration</h2>
+      <button class="toggle-btn" (click)="layoutService.toggleSidebar()" title="Toggle Sidebar">
+        {{ layoutService.isSidebarCollapsed() ? '▶' : '◀' }}
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a routerLink="/admin/atms" routerLinkActive="active" class="nav-item" title="ATMs">
+        <span class="icon">🏧</span> <span class="label" *ngIf="!layoutService.isSidebarCollapsed()">ATMs</span>
+      </a>
+      <a routerLink="/admin/businesses" routerLinkActive="active" class="nav-item" title="Business">
+        <span class="icon">💼</span> <span class="label" *ngIf="!layoutService.isSidebarCollapsed()">Business</span>
+      </a>
+      <a routerLink="/admin/branches" routerLinkActive="active" class="nav-item" title="Branches">
+        <span class="icon">🏢</span> <span class="label" *ngIf="!layoutService.isSidebarCollapsed()">Branches</span>
+      </a>
+      <a routerLink="/admin/regions" routerLinkActive="active" class="nav-item" title="Régions">
+        <span class="icon">🌍</span> <span class="label" *ngIf="!layoutService.isSidebarCollapsed()">Régions</span>
+      </a>
+      <a routerLink="/admin/groups" routerLinkActive="active" class="nav-item" title="Groupes">
+        <span class="icon">👥</span> <span class="label" *ngIf="!layoutService.isSidebarCollapsed()">Groupes</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

@@ -1,0 +1,130 @@
+<div class="map-shell">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar" [class.sidebar--collapsed]="sidebarCollapsed()">
+
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <span class="brand-icon">📡</span>
+        <div *ngIf="!sidebarCollapsed()">
+          <h2 class="sidebar-title">ATMs</h2>
+          <p class="sidebar-sub">{{ filtered().length }} / {{ atms().length }} affichés</p>
+        </div>
+      </div>
+      <button class="collapse-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed() ? 'Ouvrir' : 'Fermer'">
+        {{ sidebarCollapsed() ? '›' : '‹' }}
+      </button>
+    </div>
+
+    <ng-container *ngIf="!sidebarCollapsed()">
+
+      <!-- Search -->
+      <div class="sidebar-search">
+        <input
+          class="search-box"
+          type="text"
+          placeholder="🔍  Rechercher…"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+        />
+      </div>
+
+      <!-- Status filters -->
+      <div class="filter-chips">
+        <button class="chip" [class.chip--active]="filterStatus() === 'all'"      (click)="filterStatus.set('all')">Tous</button>
+        <button class="chip chip--ok"   [class.chip--active]="filterStatus() === 'active'"   (click)="filterStatus.set('active')">Actifs</button>
+        <button class="chip chip--down" [class.chip--active]="filterStatus() === 'inactive'" (click)="filterStatus.set('inactive')">Inactifs</button>
+      </div>
+
+      <!-- KPI mini strip -->
+      <div class="kpi-row">
+        <div class="kpi-pill kpi-pill--total">
+          <span class="kpi-num">{{ totalCount() }}</span>
+          <span class="kpi-lbl">Total</span>
+        </div>
+        <div class="kpi-pill kpi-pill--ok">
+          <span class="kpi-num">{{ activeCount() }}</span>
+          <span class="kpi-lbl">Actifs</span>
+        </div>
+        <div class="kpi-pill kpi-pill--down">
+          <span class="kpi-num">{{ inactiveCount() }}</span>
+          <span class="kpi-lbl">Inactifs</span>
+        </div>
+      </div>
+
+      <!-- ATM List -->
+      <div class="atm-list" *ngIf="!isLoading() && !error()">
+        <div
+          *ngFor="let atm of filtered()"
+          class="atm-item"
+          [class.atm-item--selected]="selectedAtm()?.clientId === atm.clientId"
+          (click)="selectAtm(atm)"
+        >
+          <span class="status-dot" [class.dot--ok]="atm.active" [class.dot--down]="!atm.active"></span>
+          <div class="atm-info">
+            <span class="atm-name">{{ atm.clientName }}</span>
+            <span class="atm-ip">{{ atm.networkAddress }}</span>
+          </div>
+          <button class="fly-btn" title="Centrer sur la carte" (click)="flyTo(atm); $event.stopPropagation()">⌖</button>
+        </div>
+
+        <div *ngIf="filtered().length === 0" class="empty-sidebar">
+          <span>Aucun ATM trouvé</span>
+        </div>
+      </div>
+
+      <!-- Loading / Error in sidebar -->
+      <div *ngIf="isLoading()" class="sidebar-state">
+        <div class="spinner"></div>
+        <span>Chargement…</span>
+      </div>
+      <div *ngIf="error()" class="sidebar-error">⚠️ {{ error() }}</div>
+
+    </ng-container>
+  </aside>
+
+  <!-- ── Map container ──────────────────────────────────────────────────── -->
+  <div class="map-area">
+
+    <!-- Top bar -->
+    <div class="map-topbar">
+      <button class="back-btn" (click)="goBack()">← Retour liste</button>
+      <span class="map-title">Carte des ATMs</span>
+      <div class="topbar-actions">
+        <button class="tb-btn" title="Recentrer sur tous les ATMs" (click)="fitAll()">⛶ Voir tout</button>
+        <button class="tb-btn" title="Actualiser" (click)="load()">↻ Actualiser</button>
+      </div>
+    </div>
+
+    <!-- Leaflet map -->
+    <div id="atm-map" class="leaflet-host"></div>
+
+    <!-- Selected ATM detail card -->
+    <div class="detail-card" *ngIf="selectedAtm() as atm" [@slideIn]>
+      <div class="detail-header">
+        <span class="status-dot lg" [class.dot--ok]="atm.active" [class.dot--down]="!atm.active"></span>
+        <div>
+          <h3 class="detail-name">{{ atm.clientName }}</h3>
+          <p class="detail-id">#{{ atm.clientId }}</p>
+        </div>
+        <button class="detail-close" (click)="selectedAtm.set(null)">✕</button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-row"><span class="detail-key">IP</span><code>{{ atm.networkAddress }}</code></div>
+        <div class="detail-row"><span class="detail-key">Statut</span>
+          <span class="badge" [class.badge--ok]="atm.active" [class.badge--down]="!atm.active">
+            {{ atm.active ? 'Actif' : 'Inactif' }}
+          </span>
+        </div>
+        <div class="detail-row"><span class="detail-key">Connexion</span><span>{{ connectableLabel(atm.connectable) }}</span></div>
+        <div class="detail-row"><span class="detail-key">Hardware</span><span>{{ atm.hardwareTypeName ?? '—' }}</span></div>
+        <div class="detail-row"><span class="detail-key">Coords</span><span>{{ atm.latitude | number:'1.4-4' }}, {{ atm.longitude | number:'1.4-4' }}</span></div>
+        <div class="detail-row" *ngIf="atm.comments"><span class="detail-key">Notes</span><span>{{ atm.comments }}</span></div>
+      </div>
+      <div class="detail-footer">
+        <button class="btn btn-primary btn--sm" (click)="goEdit(atm.clientId)">✏️ Modifier</button>
+      </div>
+    </div>
+
+  </div>
+</div>

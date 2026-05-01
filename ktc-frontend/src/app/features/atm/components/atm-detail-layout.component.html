@@ -1,0 +1,50 @@
+<div class="page-wrapper">
+  <!-- Loading & Error -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement des détails de l'ATM...</p>
+  </div>
+  <div *ngIf="error() && !isLoading()" class="error-box">
+    <span>⚠️ {{ error() }}</span>
+    <a routerLink="/admin/atms" class="btn btn-secondary btn--sm">Retour à la liste</a>
+  </div>
+
+  <ng-container *ngIf="!isLoading() && !error() && atm() as atmData">
+    <!-- Header -->
+    <div class="page-head">
+      <div class="title-group">
+        <a routerLink="/admin/atms" class="back-btn" title="Retour aux ATMs">←</a>
+        <div>
+          <h1 class="page-title">{{ atmData.clientName }}</h1>
+          <p class="page-subtitle">ID: #{{ atmData.clientId }} | IP: {{ atmData.networkAddress }}</p>
+        </div>
+        <span class="badge" [class.badge--ok]="atmData.active" [class.badge--down]="!atmData.active">
+          {{ atmData.active ? 'Actif' : 'Inactif' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Horizontal Menu -->
+    <div class="horizontal-menu-card card">
+      <nav class="detail-nav">
+        <a routerLink="./general" routerLinkActive="active" class="nav-item">Général</a>
+        <a routerLink="./status" routerLinkActive="active" class="nav-item">Statut des composants</a>
+        <a routerLink="./cash-cassettes" routerLinkActive="active" class="nav-item">Cash / Cassettes / Historique</a>
+        <a routerLink="./asset-history" routerLinkActive="active" class="nav-item">Asset History</a>
+        <a routerLink="./tickets" routerLinkActive="active" class="nav-item">Tickets</a>
+        <a routerLink="./software-info" routerLinkActive="active" class="nav-item">Software Info</a>
+        <a routerLink="./certificates" routerLinkActive="active" class="nav-item">Certificates</a>
+        <a routerLink="./actions" routerLinkActive="active" class="nav-item">Actions</a>
+        <a routerLink="./electronic-journal" routerLinkActive="active" class="nav-item">Electronic Journal</a>
+        <a routerLink="./transactions" routerLinkActive="active" class="nav-item">Session/Transaction Data</a>
+        <a routerLink="./videojournal" routerLinkActive="active" class="nav-item">VideoJournal</a>
+        <a routerLink="./availability" routerLinkActive="active" class="nav-item">Availability</a>
+      </nav>
+    </div>
+
+    <!-- Child View -->
+    <div class="detail-content">
+      <router-outlet></router-outlet>
+    </div>
+  </ng-container>
+</div>

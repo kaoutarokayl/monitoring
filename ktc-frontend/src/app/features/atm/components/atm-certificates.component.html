@@ -1,0 +1,53 @@
+<div class="certificates-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Chargement des certificats...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    <div class="detail-panel full-width">
+      <h3 class="panel-title">Certificates</h3>
+
+      <div class="table-container">
+        @if (certificates().length === 0) {
+          <div class="empty-state">Aucun certificat disponible pour cet ATM.</div>
+        } @else {
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>Certificate Store</th>
+                <th>Subject</th>
+                <th>Issuer</th>
+                <th>Friendly Name</th>
+                <th>Not Before</th>
+                <th>Not After</th>
+                <th>Private Key</th>
+                <th>First Seen</th>
+                <th>Serial Number</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of certificates(); track row.serialNumber + '-' + row.subjectName) {
+                <tr>
+                  <td>{{ row.certificateStore }}</td>
+                  <td>{{ row.subjectName }}</td>
+                  <td>{{ row.issuer }}</td>
+                  <td>{{ row.friendlyName }}</td>
+                  <td>{{ row.notBefore | date:'dd MMM yyyy' }}</td>
+                  <td>{{ row.notAfter | date:'dd MMM yyyy' }}</td>
+                  <td>{{ row.isPrivate ? 'True' : 'False' }}</td>
+                  <td>{{ row.firstSeen | date:'dd MMM yyyy' }}</td>
+                  <td class="mono" [title]="row.serialNumber">{{ row.serialNumber }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  }
+</div>

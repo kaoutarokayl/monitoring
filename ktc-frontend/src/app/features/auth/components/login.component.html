@@ -1,0 +1,46 @@
+<div class="login-container">
+  <div class="login-card">
+
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">K</div>
+      <div class="brand-text">
+        <h2 class="title">KTC Web</h2>
+        <p class="subtitle">Connexion Active Directory</p>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-box">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <!-- Username -->
+      <div class="form-group">
+        <label for="username">Nom d'utilisateur</label>
+        <input id="username" type="text" formControlName="username" autocomplete="username" />
+
+        <small *ngIf="f['username'].invalid && f['username'].touched">
+          Champ obligatoire
+        </small>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+
+        <small *ngIf="f['password'].invalid && f['password'].touched">
+          Champ obligatoire
+        </small>
+      </div>
+
+      <!-- Button -->
+      <button type="submit" [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+      </button>
+
+    </form>
+
+  </div>
+</div>

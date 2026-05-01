@@ -1,0 +1,243 @@
+/* ===== SIDEBAR ===== */
+:host {
+  display: block;
+}
+
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  height: calc(100vh - 56px);
+  position: sticky;
+  top: 56px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+  min-width: 70px;
+}
+
+.sidebar-header {
+  height: 48px;
+  padding: 0 10px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+}
+
+.toggle-btn:hover {
+  color: #4f46e5;
+}
+
+.collapsed-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 18px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748b;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+  letter-spacing: 0.2px;
+}
+
+.tab-btn:hover {
+  color: #0f172a;
+}
+
+.tab-btn.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+}
+
+/* ── Tab content ── */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+/* ── Loading ── */
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* ── Tree ── */
+.tree-list,
+.tree-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree-children {
+  padding-left: 18px;
+  border-left: 1px dashed #cbd5e1;
+  margin-left: 22px;
+}
+
+.tree-node {
+  margin: 0;
+}
+
+/* ── Tree row (clickable) ── */
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 1px 6px;
+  transition: background 120ms;
+  user-select: none;
+}
+
+.tree-row:hover {
+  background: #f1f5f9;
+}
+
+.tree-row.expanded {
+  background: #ede9fe;
+}
+
+.biz-row.expanded {
+  background: #ede9fe;
+}
+
+.branch-row.expanded {
+  background: #e0f2fe;
+}
+
+.tree-arrow {
+  font-size: 10px;
+  color: #94a3b8;
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.node-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.node-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Leaf (ATM) ── */
+.leaf-node {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin: 1px 4px;
+  transition: background 120ms;
+}
+
+.leaf-node:hover {
+  background: #f8fafc;
+}
+
+.leaf-empty {
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.empty-tree {
+  padding: 16px;
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+/* ── Status dot ── */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-ok   { background: #16a34a; box-shadow: 0 0 4px rgba(22,163,74,0.5); }
+.dot-down { background: #dc2626; box-shadow: 0 0 4px rgba(220,38,38,0.5); }
+
+/* ── IP code ── */
+.node-ip {
+  font-size: 10px;
+  color: #94a3b8;
+  font-family: monospace;
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Spinner ── */
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

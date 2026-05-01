@@ -1,0 +1,134 @@
+<div class="page-wrapper">
+  <div class="card toolbar">
+    <div class="toolbar-left">
+      <div class="title">
+        <strong>Availability</strong>
+        <span class="muted" *ngIf="report() as r">| {{ r.totalDuration }} | {{ r.coveringText }}</span>
+      </div>
+    </div>
+
+    <form [formGroup]="filterForm" class="toolbar-right">
+      <label class="field">
+        <span class="label">From</span>
+        <input class="input" type="datetime-local" formControlName="from" />
+      </label>
+      <label class="field">
+        <span class="label">To</span>
+        <input class="input" type="datetime-local" formControlName="to" />
+      </label>
+      <button type="button" class="btn btn-primary" (click)="refresh()" [disabled]="isLoading()">
+        Refresh
+      </button>
+    </form>
+  </div>
+
+  <div *ngIf="error()" class="error-box">
+    <span>⚠️ {{ error() }}</span>
+  </div>
+
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement du rapport Availability…</p>
+  </div>
+
+  <div *ngIf="!isLoading() && report() as r" class="grid">
+    <!-- LEFT -->
+    <div class="card col">
+      <div class="col-head">Application service state</div>
+
+      <div class="list">
+        @for (m of r.serviceStates; track m.state) {
+          <div class="row">
+            <div class="row-left">
+              <div class="name">{{ m.state }}</div>
+              <div class="meta">{{ m.duration }}</div>
+            </div>
+            <div class="row-mid">
+              <div class="bar">
+                <div class="fill neutral" [style.width]="pctWidth(m.percent)"></div>
+              </div>
+            </div>
+            <div class="row-right mono">{{ m.percent }}%</div>
+          </div>
+        }
+      </div>
+
+      <div class="cover">{{ r.coveringText }}</div>
+
+      <div class="summary">
+        <div class="summary-item">
+          <div class="label">Total duration</div>
+          <div class="value mono">{{ r.totalDuration }}</div>
+        </div>
+      </div>
+
+      <div class="subhead">Top 5 unavailable reasons</div>
+      <div class="list compact">
+        @for (u of r.topUnavailableReasons; track u.reasonId) {
+          <div class="row">
+            <div class="row-left">
+              <div class="name">#{{ u.reasonId }} — {{ u.reason }}</div>
+              <div class="meta">{{ u.duration }}</div>
+            </div>
+            <div class="row-mid">
+              <div class="bar">
+                <div class="fill warn" [style.width]="pctWidth(u.percent)"></div>
+              </div>
+            </div>
+            <div class="row-right mono">{{ u.percent }}%</div>
+          </div>
+        }
+        @if (r.topUnavailableReasons.length === 0) {
+          <div class="empty">No unavailable reasons in this range.</div>
+        }
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card col">
+      <div class="col-head">Down error code duration</div>
+
+      <div class="kpis">
+        <div class="kpi kpi-up">
+          <div class="kpi-title">Uptime</div>
+          <div class="kpi-value mono">{{ r.uptimeDuration }}</div>
+          <div class="kpi-sub mono">{{ r.uptimePercent }}%</div>
+          <div class="bar big">
+            <div class="fill up" [style.width]="pctWidth(r.uptimePercent)"></div>
+          </div>
+        </div>
+
+        <div class="kpi kpi-down">
+          <div class="kpi-title">Downtime</div>
+          <div class="kpi-value mono">{{ r.downtimeDuration }}</div>
+          <div class="kpi-sub mono">{{ r.downtimePercent }}%</div>
+          <div class="bar big">
+            <div class="fill down" [style.width]="pctWidth(r.downtimePercent)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subhead">Top 5 error codes</div>
+      <div class="list compact">
+        @for (e of r.topErrorCodes; track e.errorCodeTypeId) {
+          <div class="row">
+            <div class="row-left">
+              <div class="name">{{ e.code }} ({{ e.errorCodeTypeId }})</div>
+              <div class="meta">{{ e.duration }} <span class="muted">—</span> {{ e.reason }}</div>
+            </div>
+            <div class="row-mid">
+              <div class="bar">
+                <div class="fill down" [style.width]="pctWidth(e.percent)"></div>
+              </div>
+            </div>
+            <div class="row-right mono">{{ e.percent }}%</div>
+          </div>
+        }
+        @if (r.topErrorCodes.length === 0) {
+          <div class="empty">No error codes in this range.</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+

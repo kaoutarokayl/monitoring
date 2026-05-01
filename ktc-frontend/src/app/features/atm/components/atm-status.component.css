@@ -1,0 +1,220 @@
+.atm-status-container {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  background-color: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+}
+
+.loading-state, .error-state {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Master Panel (Left) */
+.master-panel {
+  flex: 0 0 30%;
+  border-right: 1px solid var(--border);
+  background-color: var(--surface-light, #fafafa);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-title {
+  margin: 0;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted-text, #666);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  position: sticky;
+  top: 0;
+}
+
+.component-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.component-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light, #eee);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.component-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.component-item.active {
+  background-color: var(--primary-light, #e6f0fa);
+  border-left: 4px solid var(--primary);
+  font-weight: 500;
+}
+
+.component-name {
+  font-size: 14px;
+}
+
+/* Detail Panel (Right) */
+.detail-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f2f2f2;
+}
+
+.subtab-nav {
+  display: flex;
+  gap: 0;
+  padding: 0 12px;
+  border-bottom: 1px solid #cfcfcf;
+  background: #e4e4e4;
+}
+
+.subtab-button {
+  border: 0;
+  border-right: 1px solid #c4c4c4;
+  background: transparent;
+  color: #333;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.subtab-button:hover {
+  background: #dcdcdc;
+}
+
+.subtab-button.active {
+  background: #ffffff;
+  box-shadow: inset 0 -2px 0 #7d7d7d;
+}
+
+.empty-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.table-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f2f2f2;
+}
+
+.category-section {
+  margin-bottom: 24px;
+}
+
+.category-title {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border-light, #eee);
+  padding-bottom: 6px;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #fff;
+}
+
+.detail-table th, .detail-table td {
+  padding: 7px 10px;
+  text-align: left;
+  border: 1px solid #d2d2d2;
+  white-space: nowrap;
+}
+
+.detail-table th {
+  font-weight: 600;
+  color: #4b4b4b;
+  background-color: #ececec;
+  position: sticky;
+  top: 0;
+}
+
+.detail-table tbody tr:nth-child(even) td {
+  background-color: #f7f7f7;
+}
+
+.col-status {
+  width: 40px;
+  text-align: center;
+}
+
+.col-value {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+/* LEDs */
+.status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 12px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.status-green {
+  background-color: #28a745;
+  box-shadow: 0 0 5px #28a745, inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.status-red {
+  background-color: #dc3545;
+  box-shadow: 0 0 5px #dc3545, inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.status-orange {
+  background-color: #fd7e14;
+  box-shadow: 0 0 5px #fd7e14, inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.status-gray {
+  background-color: #6c757d;
+}

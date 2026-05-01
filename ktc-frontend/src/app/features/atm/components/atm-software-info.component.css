@@ -1,0 +1,64 @@
+.atm-status-container {
+  width: 100%;
+}
+
+.panel-title {
+  margin: 0 0 1rem;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  padding: 1rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.detail-table thead th {
+  background: #f7f7f7;
+  color: #333;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.detail-table th,
+.detail-table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid #ececec;
+  text-align: left;
+  font-size: 13px;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-row td {
+  border-bottom: 1px solid #dfe3e8;
+}
+
+.group-title {
+  background: #fafafa;
+  color: #1f3b8f;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  padding-top: 0.7rem;
+  padding-bottom: 0.5rem;
+}
+
+.detail-table tbody tr:hover td {
+  background: #f9fbff;
+}

@@ -1,0 +1,249 @@
+/* ===== APP HEADER ===== */
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+/* ---- Brand ---- */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: white;
+  background: linear-gradient(135deg, #4f46e5, #16a34a);
+  box-shadow: 0 6px 14px rgba(79, 70, 229, 0.22);
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: #0f172a;
+}
+
+/* ---- Right actions ---- */
+.header-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Profile trigger ---- */
+.profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: background 120ms ease;
+  user-select: none;
+}
+
+.profile-wrapper:hover {
+  background: #f1f5f9;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #16a34a);
+  color: white;
+  font-weight: 800;
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.profile-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.chevron {
+  font-size: 18px;
+  color: #94a3b8;
+  transition: transform 200ms ease;
+  line-height: 1;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown ---- */
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+  animation: dropIn 150ms ease;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dropdown-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #16a34a);
+  color: white;
+  font-weight: 800;
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.dropdown-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dropdown-email {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ---- Roles ---- */
+.dropdown-roles {
+  padding: 14px 16px 10px;
+}
+
+.roles-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.role-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #ede9fe;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---- Divider ---- */
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0 16px;
+}
+
+/* ---- Logout ---- */
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: #b91c1c;
+  transition: background 120ms ease;
+  text-align: left;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
+}
+
+.logout-icon {
+  font-size: 16px;
+}
+
+.support-btn {
+  border: 1px solid var(--brand-100);
+  background: white;
+  color: var(--brand-500);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.support-btn:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-100);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .profile-info { display: none; }
+  .chevron { display: none; }
+}

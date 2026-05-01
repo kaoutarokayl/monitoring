@@ -1,0 +1,48 @@
+<div class="atm-status-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <p>Chargement des logiciels installes...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+    </div>
+  } @else {
+    <div class="detail-panel full-width">
+      <h3 class="panel-title">Software Info</h3>
+
+      <div class="table-container">
+        @if (softwareData().length === 0) {
+          <div class="empty-state">Aucun logiciel installe pour cet ATM.</div>
+        } @else {
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Version</th>
+                <th>Date d'installation</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (group of groupedSoftware(); track group.type) {
+                <tr class="group-row">
+                  <td colspan="4" class="group-title">{{ group.type }}</td>
+                </tr>
+                @for (item of group.items; track item.swId + '-' + item.version + '-' + item.installDate) {
+                  <tr>
+                    <td><strong>{{ item.softwareName }}</strong></td>
+                    <td>{{ item.version || 'N/A' }}</td>
+                    <td>{{ item.installDate ? (item.installDate | date:'dd MMM yyyy') : 'N/A' }}</td>
+                    <td>{{ group.type }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  }
+</div>

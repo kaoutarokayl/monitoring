@@ -1,0 +1,130 @@
+<div class="page-wrapper">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <button class="back-btn" (click)="cancel()">← Retour</button>
+      <h1 class="page-title">{{ isEdit() ? 'Modifier la branche' : 'Nouvelle branche' }}</h1>
+      <p class="page-subtitle">
+        {{ isEdit() ? 'Mise à jour de la branche #' + editId() : 'Enregistrer une nouvelle branche' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement…</p>
+  </div>
+
+  <!-- ── Alerts ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="alert alert--error">⚠️ {{ error() }}</div>
+  <div *ngIf="successMsg()"            class="alert alert--ok">✅ {{ successMsg() }}</div>
+
+  <!-- ── Form ────────────────────────────────────────────────────────────── -->
+  <form
+    *ngIf="!isLoading()"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="form-grid"
+  >
+
+    <!-- ═══ Section : Identification ════════════════════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Identification</h2>
+      <div class="fields-row">
+
+        <div class="field">
+          <label class="field-label" for="branchName">Nom de la branche <span class="req">*</span></label>
+          <input id="branchName" type="text" formControlName="branchName" placeholder="ex: Agence Casablanca Centre" />
+          <small *ngIf="f['branchName'].invalid && f['branchName'].touched" class="field-error">
+            Nom requis (min 2 caractères)
+          </small>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="displayId">Display ID</label>
+          <input id="displayId" type="text" formControlName="displayId" placeholder="ex: BR-001" />
+        </div>
+<div class="field">
+  <label class="field-label" for="businessId">
+    Business <span class="req">*</span>
+  </label>
+
+  <select
+    id="businessId"
+    formControlName="businessId"
+    [class.invalid]="f['businessId'].invalid && f['businessId'].touched"
+  >
+    <option [ngValue]="0" disabled>— Sélectionner —</option>
+
+    <option *ngFor="let b of businesses()" [ngValue]="b.businessId">
+      {{ b.businessName }}
+    </option>
+  </select>
+
+  <small
+    *ngIf="f['businessId'].invalid && f['businessId'].touched"
+    class="field-error"
+  >
+    Veuillez sélectionner un business
+  </small>
+</div>
+      </div>
+    </div>
+
+    <!-- ═══ Section : Régions ════════════════════════════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Niveaux régionaux</h2>
+      <p class="section-hint">Laisser à 0 si non applicable.</p>
+      <div class="fields-row">
+
+        <div class="field">
+          <label class="field-label" for="level1RegionId">Région niveau 1</label>
+          <input id="level1RegionId" type="number" min="0" formControlName="level1RegionId" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="level2RegionId">Région niveau 2</label>
+          <input id="level2RegionId" type="number" min="0" formControlName="level2RegionId" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="level3RegionId">Région niveau 3</label>
+          <input id="level3RegionId" type="number" min="0" formControlName="level3RegionId" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="level4RegionId">Région niveau 4</label>
+          <input id="level4RegionId" type="number" min="0" formControlName="level4RegionId" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="level5RegionId">Région niveau 5</label>
+          <input id="level5RegionId" type="number" min="0" formControlName="level5RegionId" />
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ Section : Informations additionnelles ═══════════════════════════ -->
+    <div class="form-section card">
+      <h2 class="section-title">Informations additionnelles</h2>
+      <textarea
+        id="additionalInfo"
+        formControlName="additionalInfo"
+        rows="4"
+        placeholder="Notes internes, informations XML…"
+      ></textarea>
+    </div>
+
+    <!-- ═══ Actions ═════════════════════════════════════════════════════════ -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+        {{ isSaving() ? 'Enregistrement…' : (isEdit() ? 'Mettre à jour' : 'Créer la branche') }}
+      </button>
+    </div>
+
+  </form>
+</div>

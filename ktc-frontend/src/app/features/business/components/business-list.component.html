@@ -1,0 +1,97 @@
+<div class="page-wrapper">
+
+  <!-- ── Page header ─────────────────────────────────────────────────────── -->
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Businesses</h1>
+      <p class="page-subtitle">Gestion des entreprises et partenaires</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-primary" (click)="goCreate()">
+        <span class="btn-icon">＋</span> Nouveau Business
+      </button>
+    </div>
+  </div>
+
+  <!-- ── KPI strip ───────────────────────────────────────────────────────── -->
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalCount() }}</span>
+      <span class="kpi-label">Total</span>
+    </div>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+  <div class="toolbar card">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Rechercher par nom, Display ID, ID…"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="searchQuery.set($event)"
+    />
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="state-box">
+    <div class="spinner"></div>
+    <p>Chargement des businesses…</p>
+  </div>
+
+  <!-- ── Error ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="error-box">
+    <span>⚠️ {{ error() }}</span>
+    <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading() && !error()" class="table-card card">
+    <div class="table-wrapper">
+      <table class="business-table">
+        <thead>
+          <tr>
+            <th (click)="sort('businessId')">#ID {{ sortIcon('businessId') }}</th>
+            <th (click)="sort('businessName')">Nom {{ sortIcon('businessName') }}</th>
+            <th (click)="sort('displayId')">Display ID {{ sortIcon('displayId') }}</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Empty state -->
+          <tr *ngIf="filtered().length === 0">
+            <td colspan="4" class="empty-row">
+              <div class="empty-state">
+                <div class="empty-icon">🏢</div>
+                <p>Aucun business trouvé</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Rows -->
+          <tr *ngFor="let b of filtered()" class="business-row">
+            <td class="col-id">#{{ b.businessId }}</td>
+
+            <td class="col-name">
+              <div class="name-cell">
+                <span class="status-dot dot--ok"></span>
+                <span>{{ b.businessName }}</span>
+              </div>
+            </td>
+
+            <td>{{ b.displayId || '—' }}</td>
+
+            <td class="col-actions">
+              <button class="icon-btn icon-btn--edit" title="Modifier" (click)="goEdit(b.businessId)">✏️</button>
+              <button class="icon-btn icon-btn--del"  title="Supprimer" (click)="confirmDelete(b)">🗑️</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      {{ filtered().length }} résultat(s) affiché(s)
+    </div>
+  </div>
+
+</div>
