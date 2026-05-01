@@ -48,7 +48,20 @@ namespace KtcWeb.Application.Services
         public Task<List<AppCounterDto>> GetApplicationCountersAsync(int clientId, short componentId) => _atmRepository.GetApplicationCountersAsync(clientId, componentId);
         public Task<List<ReplenishmentDto>> GetReplenishmentsAsync(int clientId, short componentId) => _atmRepository.GetReplenishmentsAsync(clientId, componentId);
         public Task<XfsCountersResponseDto> GetXfsCountersAsync(int clientId, short componentId) => _atmRepository.GetXfsCountersAsync(clientId, componentId);
-        public Task<List<AtmActionDto>> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to) => _atmRepository.GetClientActionsAsync(clientId, from, to);
+        public Task<AtmActionsResponseDto> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to, int? days, string? addedByUser) =>
+            _atmRepository.GetClientActionsAsync(clientId, from, to, days, addedByUser);
+
+        public Task<List<RemoteCommandTypeDto>> GetRemoteCommandTypesAsync() => _atmRepository.GetRemoteCommandTypesAsync();
+
+        public Task<DispatchRemoteActionsResponse> DispatchRemoteActionsAsync(DispatchRemoteActionsRequest request)
+        {
+            if (request.ClientIds == null || request.ClientIds.Count == 0)
+            {
+                return Task.FromResult(new DispatchRemoteActionsResponse());
+            }
+
+            return _atmRepository.DispatchRemoteActionsAsync(request.CommandId, request.ClientIds, request.InitiatedBy);
+        }
 
         public Task<List<ElectronicJournalEntryDto>> GetElectronicJournalAsync(int clientId, DateTime from, DateTime to)
         {

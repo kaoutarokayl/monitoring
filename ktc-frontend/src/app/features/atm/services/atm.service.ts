@@ -1,5 +1,5 @@
 export * from '../models/atm.models';
-import { ClientAtm, BusinessDto, BusinessDetailsDto, BranchDto, RegionDto, RegionDetailsDto, HardwareTypeDto, CreateOrUpdateAtmRequest, CreateBranchRequest, CreateBusinessRequest, CreateRegionRequest, AtmComponentStatusDto, AtmAssetHistoryDto, RegionListDto, LastClientContactDto, AtmSoftwareInfoDto, AtmCertificateDto, AtmTicketDto, AppCounterDto, ReplenishmentDto, XfsCountersResponseDto, AtmActionDto, ElectronicJournalEntryDto, LookupItemDto, TransactionAuditDto, TransactionSearchCriteria, VideoJournalEventDto, AtmAvailabilityReportDto, AtmCashCassetteOverviewDto, CashFlowReportDto, CashUnitHistoryRowDto, CassetteSummaryDto } from '../models/atm.models';
+import { ClientAtm, BusinessDto, BusinessDetailsDto, BranchDto, RegionDto, RegionDetailsDto, HardwareTypeDto, CreateOrUpdateAtmRequest, CreateBranchRequest, CreateBusinessRequest, CreateRegionRequest, AtmComponentStatusDto, AtmAssetHistoryDto, RegionListDto, LastClientContactDto, AtmSoftwareInfoDto, AtmCertificateDto, AtmTicketDto, AppCounterDto, ReplenishmentDto, XfsCountersResponseDto, AtmActionsResponseDto, RemoteCommandTypeDto, DispatchRemoteActionsRequest, DispatchRemoteActionsResponse, ElectronicJournalEntryDto, LookupItemDto, TransactionAuditDto, TransactionSearchCriteria, VideoJournalEventDto, AtmAvailabilityReportDto, AtmCashCassetteOverviewDto, CashFlowReportDto, CashUnitHistoryRowDto, CassetteSummaryDto } from '../models/atm.models';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -51,11 +51,24 @@ export class AtmService {
     return this.http.get<XfsCountersResponseDto>(`${this.BASE}/clients/${clientId}/components/${componentId}/xfs-counters`);
   }
 
-  getClientActions(clientId: number, from?: string, to?: string): Observable<AtmActionDto[]> {
+  getClientActions(
+    clientId: number,
+    opts?: { days?: number; addedByUser?: string; from?: string; to?: string }
+  ): Observable<AtmActionsResponseDto> {
     const params: Record<string, string> = {};
-    if (from) params['from'] = from;
-    if (to) params['to'] = to;
-    return this.http.get<AtmActionDto[]>(`${this.BASE}/clients/${clientId}/actions`, { params });
+    if (opts?.from) params['from'] = opts.from;
+    if (opts?.to) params['to'] = opts.to;
+    if (opts?.days != null && opts.days > 0) params['days'] = String(opts.days);
+    if (opts?.addedByUser) params['addedByUser'] = opts.addedByUser;
+    return this.http.get<AtmActionsResponseDto>(`${this.BASE}/clients/${clientId}/actions`, { params });
+  }
+
+  getRemoteCommandTypes(): Observable<RemoteCommandTypeDto[]> {
+    return this.http.get<RemoteCommandTypeDto[]>(`${this.BASE}/command-types`);
+  }
+
+  dispatchRemoteCommand(body: DispatchRemoteActionsRequest): Observable<DispatchRemoteActionsResponse> {
+    return this.http.post<DispatchRemoteActionsResponse>(`${this.BASE}/clients/dispatch-command`, body);
   }
 
   getElectronicJournal(clientId: number, from: string, to: string): Observable<ElectronicJournalEntryDto[]> {

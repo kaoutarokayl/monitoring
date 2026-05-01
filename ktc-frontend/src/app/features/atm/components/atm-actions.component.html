@@ -1,14 +1,44 @@
 <div class="panel">
+  <p class="panel-intro">
+    Historique des commandes à distance pour cet ATM (données
+    <span class="mono">dbo.Actions</span>
+    /
+    <span class="mono">dbo.CommandTypes</span>
+    ). Les horodatages viennent de la base (UTC côté schéma KTC), au format
+    <span class="mono">yyyy-MM-dd HH:mm:ss</span>.
+  </p>
   <div class="filters">
     <div class="field">
-      <label>From</label>
-      <input type="datetime-local" [value]="from()" (input)="from.set(($any($event.target)).value)" />
+      <label for="addedBy">Ajouté par</label>
+      <select
+        id="addedBy"
+        class="control"
+        [value]="addedByUser()"
+        (change)="onUserFilterChange($event)"
+      >
+        <option value="">Tous</option>
+        @for (u of addedByUsers(); track u) {
+          <option [value]="u">{{ u }}</option>
+        }
+      </select>
     </div>
-    <div class="field">
-      <label>To</label>
-      <input type="datetime-local" [value]="to()" (input)="to.set(($any($event.target)).value)" />
+    <div class="field field--grow">
+      <label for="daysSpinner">Nombre de jours d’historique</label>
+      <div class="day-stepper">
+        <button type="button" class="step-btn" (click)="bumpDays(-1)" title="Moins un jour">−</button>
+        <input
+          id="daysSpinner"
+          class="control control--narrow"
+          type="number"
+          min="1"
+          max="365"
+          [value]="days()"
+          (input)="onDaysInput($event)"
+        />
+        <button type="button" class="step-btn" (click)="bumpDays(1)" title="Plus un jour">+</button>
+      </div>
     </div>
-    <button class="btn" type="button" (click)="refresh()">Refresh</button>
+    <button class="btn" type="button" (click)="refresh()">Actualiser</button>
   </div>
 
   @if (isLoading()) {
@@ -22,23 +52,25 @@
       <table class="table">
         <thead>
           <tr>
-            <th>User</th>
-            <th>Command</th>
-            <th>Status</th>
-            <th>Started</th>
-            <th>Finished</th>
-            <th>Last comment</th>
+            <th>Utilisateur</th>
+            <th>Commande</th>
+            <th>Statut</th>
+            <th>Ajouté</th>
+            <th>Démarré</th>
+            <th>Terminé</th>
+            <th>Dernier commentaire</th>
           </tr>
         </thead>
         <tbody>
           @for (row of rows(); track row.actionId) {
             <tr>
-              <td class="mono">{{ row.user || '-' }}</td>
-              <td>{{ row.command }}</td>
+              <td class="mono">{{ row.user || '—' }}</td>
+              <td>{{ displayCommandLabel(row.command) }}</td>
               <td>{{ row.status }}</td>
-              <td class="mono">{{ row.started ? (row.started | date:'yyyy-MM-dd HH:mm:ss') : '-' }}</td>
-              <td class="mono">{{ row.finished ? (row.finished | date:'yyyy-MM-dd HH:mm:ss') : '-' }}</td>
-              <td>{{ row.lastComment || '-' }}</td>
+              <td class="mono">{{ row.addedTime || '—' }}</td>
+              <td class="mono">{{ row.started || '—' }}</td>
+              <td class="mono">{{ row.finished || '—' }}</td>
+              <td>{{ row.lastComment || '—' }}</td>
             </tr>
           }
         </tbody>
@@ -46,4 +78,3 @@
     </div>
   }
 </div>
-

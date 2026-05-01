@@ -37,7 +37,9 @@ namespace KtcWeb.Application.Interfaces
         Task<List<AppCounterDto>> GetApplicationCountersAsync(int clientId, short componentId);
         Task<List<ReplenishmentDto>> GetReplenishmentsAsync(int clientId, short componentId);
         Task<XfsCountersResponseDto> GetXfsCountersAsync(int clientId, short componentId);
-        Task<List<AtmActionDto>> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to);
+        Task<AtmActionsResponseDto> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to, int? days, string? addedByUser);
+        Task<List<RemoteCommandTypeDto>> GetRemoteCommandTypesAsync();
+        Task<DispatchRemoteActionsResponse> DispatchRemoteActionsAsync(DispatchRemoteActionsRequest request);
         Task<List<ElectronicJournalEntryDto>> GetElectronicJournalAsync(int clientId, DateTime from, DateTime to);
         Task<List<LookupItemDto>> GetTransactionTypeLookupsAsync();
         Task<List<LookupItemDto>> GetTransactionReasonLookupsAsync();

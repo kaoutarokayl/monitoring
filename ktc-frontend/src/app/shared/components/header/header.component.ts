@@ -2,11 +2,12 @@ import { Component, HostListener, inject, computed, signal } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AtmRemoteCommandsMenuComponent } from '../../../features/atm/components/atm-remote-commands-menu.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, AtmRemoteCommandsMenuComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })

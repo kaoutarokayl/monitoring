@@ -405,15 +405,54 @@ public async Task<IActionResult> UpdateBranch(short id, [FromBody] UpdateBranchR
         }
 
         [HttpGet("clients/{id}/actions")]
-        public async Task<ActionResult<List<AtmActionDto>>> GetClientActions(
+        public async Task<ActionResult<AtmActionsResponseDto>> GetClientActions(
             int id,
             [FromQuery] DateTime? from = null,
-            [FromQuery] DateTime? to = null)
+            [FromQuery] DateTime? to = null,
+            [FromQuery] int? days = null,
+            [FromQuery] string? addedByUser = null)
         {
             try
             {
-                var actions = await _service.GetClientActionsAsync(id, from, to);
+                var actions = await _service.GetClientActionsAsync(id, from, to, days, addedByUser);
                 return Ok(actions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("command-types")]
+        public async Task<ActionResult<List<RemoteCommandTypeDto>>> GetRemoteCommandTypes()
+        {
+            try
+            {
+                var rows = await _service.GetRemoteCommandTypesAsync();
+                return Ok(rows);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("clients/dispatch-command")]
+        public async Task<ActionResult<DispatchRemoteActionsResponse>> DispatchRemoteCommand([FromBody] DispatchRemoteActionsRequest request)
+        {
+            try
+            {
+                if (request.ClientIds == null || request.ClientIds.Count == 0)
+                {
+                    return BadRequest(new { message = "Sélectionnez au moins un ATM (clientIds)." });
+                }
+
+                var result = await _service.DispatchRemoteActionsAsync(request);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {

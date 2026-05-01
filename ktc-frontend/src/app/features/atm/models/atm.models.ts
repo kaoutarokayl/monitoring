@@ -252,9 +252,35 @@ export interface AtmActionDto {
   user: string;
   command: string;
   status: string;
+  /** dbo.Actions.addedtime (UTC) — toujours renseigné pour une nouvelle action en file */
+  addedTime?: string | null;
   started?: string | null;
   finished?: string | null;
   lastComment: string;
+}
+
+/** Réponse API GET clients/{id}/actions : historique dbo.Actions + utilisateurs pour filtre */
+export interface AtmActionsResponseDto {
+  items: AtmActionDto[];
+  addedByUsers: string[];
+}
+
+/** Ligne dbo.CommandTypes — libellés dynamiques (Refresh, Reboot, … selon la base). */
+export interface RemoteCommandTypeDto {
+  commandId: number;
+  commandName: string;
+  description: string;
+}
+
+export interface DispatchRemoteActionsRequest {
+  commandId: number;
+  clientIds: number[];
+  initiatedBy?: string;
+}
+
+export interface DispatchRemoteActionsResponse {
+  created: number;
+  skippedClientIds: string[];
 }
 
 export interface ElectronicJournalEntryDto {

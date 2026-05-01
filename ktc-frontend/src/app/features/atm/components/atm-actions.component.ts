@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AtmActionDto, AtmService } from '../services/atm.service';
+import { formatCommandDisplayLabel } from '../remote-toolbar-commands';
 
 @Component({
   selector: 'app-atm-actions',
@@ -16,8 +17,14 @@ export class AtmActionsComponent implements OnInit {
 
   readonly clientId = signal<number | null>(null);
 
-  readonly from = signal<string>('');
-  readonly to = signal<string>('');
+  /** Fenêtre mobile comme l’outil desktop (jours glissants) */
+  readonly days = signal(7);
+
+  /** Filtre « Added by User » ; chaîne vide = tous */
+  readonly addedByUser = signal('');
+
+  /** Utilisateurs distincts présents dans la fenêtre (XML comments → User) */
+  readonly addedByUsers = signal<string[]>([]);
 
   readonly isLoading = signal(false);
   readonly error = signal<string | null>(null);
@@ -29,13 +36,48 @@ export class AtmActionsComponent implements OnInit {
     const idStr = this.route.parent?.snapshot.paramMap.get('id') ?? this.route.snapshot.paramMap.get('id');
     this.clientId.set(idStr ? Number(idStr) : null);
 
-    const now = new Date();
-    const to = this.toLocalInput(now);
-    const from = this.toLocalInput(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000));
-    this.from.set(from);
-    this.to.set(to);
-
     this.refresh();
+  }
+
+  bumpDays(delta: number): void {
+    const n = Math.min(365, Math.max(1, this.days() + delta));
+    this.days.set(n);
+  }
+
+  onDaysInput(ev: Event): void {
+    const v = Number((ev.target as HTMLInputElement).value);
+    if (!Number.isFinite(v)) return;
+    this.days.set(Math.min(365, Math.max(1, Math.round(v))));
+  }
+
+  onUserFilterChange(ev: Event): void {
+    const v = (ev.target as HTMLSelectElement).value;
+    this.addedByUser.set(v);
+  }
+
+  /** Libellé sans préfixe ktc_ (aligné sur le menu Actions distantes). */
+  displayCommandLabel(name: string): string {
+    return formatCommandDisplayLabel(name);
+  }
+
+  /** Tolère JSON camelCase ou PascalCase depuis l’API. */
+  private normalizeActionRow(x: Record<string, unknown>): AtmActionDto {
+    const pick = (a: string, b: string): string | null => {
+      const v = x[a] ?? x[b];
+      if (v == null || v === '') return null;
+      const t = String(v).trim();
+      return t === '' ? null : t;
+    };
+    return {
+      actionId: Number(x['actionId'] ?? x['ActionId'] ?? 0),
+      user: pick('user', 'User') ?? '',
+      command: pick('command', 'Command') ?? '',
+      status: pick('status', 'Status') ?? '',
+      addedTime: pick('addedTime', 'AddedTime'),
+      started: pick('started', 'Started'),
+      finished: pick('finished', 'Finished'),
+      lastComment: pick('lastComment', 'LastComment') ?? '',
+    };
   }
 
   refresh(): void {
@@ -45,21 +87,23 @@ export class AtmActionsComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.atmService.getClientActions(id, this.from(), this.to()).subscribe({
-      next: (rows) => {
-        this.rows.set(rows);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.error.set("Erreur lors du chargement des Actions.");
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  private toLocalInput(date: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const user = this.addedByUser().trim();
+    this.atmService
+      .getClientActions(id, {
+        days: this.days(),
+        addedByUser: user ? user : undefined
+      })
+      .subscribe({
+        next: (res) => {
+          const items = (res.items ?? []).map((r) => this.normalizeActionRow(r as unknown as Record<string, unknown>));
+          this.rows.set(items);
+          this.addedByUsers.set(res.addedByUsers ?? []);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.error.set("Erreur lors du chargement des Actions.");
+          this.isLoading.set(false);
+        }
+      });
   }
 }
-

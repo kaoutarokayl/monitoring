@@ -291,21 +291,34 @@ namespace KtcWeb.Infrastructure.Repositories
                     cl.subject_name ASC", clientId).ToListAsync();
         }
 
-        public async Task<List<AtmActionDto>> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to)
+        public async Task<AtmActionsResponseDto> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to, int? days, string? addedByUser)
         {
             // Notes:
             // - Actions.comments is XML. We convert to NVARCHAR for parsing in C#.
-            // - We filter by client_id and time window to avoid scanning.
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-90);
-            var toDate = to ?? DateTime.UtcNow.AddDays(1);
+            // - Time window: explicit from/to overrides; otherwise optional rolling `days`; else default 90 days.
+            DateTime fromDate;
+            DateTime toDate;
+            if (from == null && to == null && days is >= 1)
+            {
+                fromDate = DateTime.UtcNow.AddDays(-days.Value);
+                toDate = DateTime.UtcNow.AddDays(1);
+            }
+            else
+            {
+                fromDate = from ?? DateTime.UtcNow.AddDays(-90);
+                toDate = to ?? DateTime.UtcNow.AddDays(1);
+            }
 
+            // Pull enough rows to populate "Added by user" options and optional user filter without duplicating tables.
+            // Dates en nvarchar : évite les soucis de matérialisation EF / JSON ; la base stocke l’heure en UTC (schéma KTC).
             var raw = await _context.Database.SqlQueryRaw<ActionRaw>(@"
-                SELECT TOP (500)
+                SELECT TOP (1500)
                     a.action_id AS ActionId,
                     ct.commandname AS CommandName,
                     a.status_id AS StatusId,
-                    a.starttime AS Started,
-                    a.endtime AS Finished,
+                    CONVERT(varchar(19), a.addedtime, 120) AS AddedTime,
+                    CONVERT(varchar(19), a.starttime, 120) AS Started,
+                    CONVERT(varchar(19), a.endtime, 120) AS Finished,
                     CAST(a.comments AS nvarchar(max)) AS CommentsXml
                 FROM dbo.Actions a
                 LEFT JOIN dbo.CommandTypes ct ON ct.command_id = a.command_id
@@ -315,25 +328,108 @@ namespace KtcWeb.Infrastructure.Repositories
                 ORDER BY ISNULL(a.addedtime, a.starttime) DESC, a.action_id DESC",
                 clientId, fromDate, toDate).ToListAsync();
 
-            var result = new List<AtmActionDto>();
+            var parsed = new List<AtmActionDto>(raw.Count);
 
             foreach (var row in raw)
             {
                 var (user, lastComment) = ParseLastActionComment(row.CommentsXml);
 
-                result.Add(new AtmActionDto
+                parsed.Add(new AtmActionDto
                 {
                     ActionId = row.ActionId,
                     User = user,
                     Command = string.IsNullOrWhiteSpace(row.CommandName) ? "Unknown" : row.CommandName,
                     Status = MapActionStatus(row.StatusId),
+                    AddedTime = row.AddedTime,
                     Started = row.Started,
                     Finished = row.Finished,
                     LastComment = lastComment
                 });
             }
 
-            return result;
+            var distinctUsers = parsed
+                .Select(a => a.User)
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(u => u, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var filterUser = addedByUser?.Trim();
+            IEnumerable<AtmActionDto> visible = parsed;
+            if (!string.IsNullOrEmpty(filterUser))
+            {
+                visible = parsed.Where(a => string.Equals(a.User, filterUser, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return new AtmActionsResponseDto
+            {
+                Items = visible.Take(500).ToList(),
+                AddedByUsers = distinctUsers
+            };
+        }
+
+        public Task<List<RemoteCommandTypeDto>> GetRemoteCommandTypesAsync()
+            => _context.Database.SqlQueryRaw<RemoteCommandTypeDto>(@"
+                SELECT
+                    command_id   AS CommandId,
+                    commandname  AS CommandName,
+                    description  AS Description
+                FROM dbo.CommandTypes
+                ORDER BY commandname").ToListAsync();
+
+        public async Task<DispatchRemoteActionsResponse> DispatchRemoteActionsAsync(byte commandId, IReadOnlyList<int> clientIds, string? initiatedBy)
+        {
+            var cmdOk = await _context.Database.SqlQueryRaw<CommandIdOnly>(@"
+                SELECT command_id AS CommandId FROM dbo.CommandTypes WHERE command_id = {0}", commandId)
+                .FirstOrDefaultAsync();
+            if (cmdOk == null)
+            {
+                throw new InvalidOperationException($"Aucun type de commande pour command_id={commandId}. Vérifiez dbo.CommandTypes.");
+            }
+
+            var distinct = clientIds.Distinct().ToList();
+            var response = new DispatchRemoteActionsResponse();
+            if (distinct.Count == 0)
+            {
+                return response;
+            }
+
+            var commentsXml = BuildRemoteActionCommentsXml(initiatedBy);
+            foreach (var clientId in distinct)
+            {
+                var exists = await _context.Database.SqlQueryRaw<ClientIdOnly>(@"
+                    SELECT client_id AS ClientId FROM dbo.Clients WHERE client_id = {0}", clientId).FirstOrDefaultAsync();
+                if (exists == null)
+                {
+                    response.SkippedClientIds.Add(clientId.ToString());
+                    continue;
+                }
+
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    INSERT INTO dbo.Actions (
+                        dependant_id, isendofchain, client_id, schedule_id, command_id,
+                        commandparams, starttime, endtime, status_id, comments,
+                        addedtime, retrycount, restarttime, result, progress_percent)
+                    VALUES (
+                        0, CAST(1 AS bit), {0}, 0, {1},
+                        CAST(N'<params />' AS xml), NULL, NULL, 7, CONVERT(xml, {2}),
+                        GETUTCDATE(), 0, NULL, CAST(N'<result />' AS xml), 0)",
+                    clientId, commandId, commentsXml);
+
+                response.Created++;
+            }
+
+            return response;
+        }
+
+        private static string BuildRemoteActionCommentsXml(string? initiatedBy)
+        {
+            var user = string.IsNullOrWhiteSpace(initiatedBy) ? "KTC Web" : initiatedBy.Trim();
+            var el = new XElement("Comment",
+                new XAttribute("User", user),
+                new XAttribute("TimeUtc", DateTime.UtcNow.ToString("o")),
+                "Commande à distance — interface web.");
+            return el.ToString(SaveOptions.DisableFormatting);
         }
 
         public async Task<List<ElectronicJournalEntryDto>> GetElectronicJournalAsync(int clientId, DateTime from, DateTime to)
@@ -1073,25 +1169,35 @@ namespace KtcWeb.Infrastructure.Repositories
             public long ActionId { get; set; }
             public string? CommandName { get; set; }
             public byte StatusId { get; set; }
-            public DateTime? Started { get; set; }
-            public DateTime? Finished { get; set; }
+            public string? AddedTime { get; set; }
+            public string? Started { get; set; }
+            public string? Finished { get; set; }
             public string? CommentsXml { get; set; }
+        }
+
+        private sealed class CommandIdOnly
+        {
+            public byte CommandId { get; set; }
+        }
+
+        private sealed class ClientIdOnly
+        {
+            public int ClientId { get; set; }
         }
 
         private static string MapActionStatus(byte statusId)
         {
-            // Observed in DB:
-            // 3 -> completed
-            // 6 -> cancelled
+            // Aligné sur MS_Description de dbo.Actions.status_id (schéma KTC).
             return statusId switch
             {
-                0 => "Pending",
-                1 => "Queued",
-                2 => "Running",
+                1 => "Pending",
+                2 => "In Progress",
                 3 => "Completed",
-                4 => "Failed",
-                5 => "Retrying",
+                4 => "Error",
+                5 => "Timeout",
                 6 => "Cancelled",
+                7 => "Immediate",
+                8 => "Scheduled",
                 _ => $"Status {statusId}"
             };
         }
