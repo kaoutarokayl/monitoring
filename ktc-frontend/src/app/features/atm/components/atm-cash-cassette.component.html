@@ -1,6 +1,6 @@
 <div class="cash-shell">
 
-  <!-- ══════════════════ LOADING ══════════════════ -->
+  <!-- ══════════ LOADING ══════════ -->
   @if (isLoading()) {
     <div class="state-center">
       <div class="spinner"></div>
@@ -8,32 +8,27 @@
     </div>
   }
 
-  <!-- ══════════════════ ERROR ═════════════════════ -->
+  <!-- ══════════ ERREUR ══════════ -->
   @if (error() && !isLoading()) {
     <div class="error-banner">⚠ {{ error() }}</div>
   }
 
-  <!-- ══════════════════ MAIN CONTENT ══════════════ -->
+  <!-- ══════════ CONTENU ══════════ -->
   @if (!isLoading() && !error()) {
 
-    <!-- ── Control bar (Tabs + Refresh) ── -->
+    <!-- Barre d'onglets -->
     <div class="control-bar">
       <div class="tabs">
-        <button class="tab" [class.active]="activeTab()==='overview'"
-                (click)="setTab('overview')">Vue globale</button>
-        <button class="tab" [class.active]="activeTab()==='cashunits'"
-                (click)="setTab('cashunits')">Cash Units</button>
-        <button class="tab" [class.active]="activeTab()==='cassettes'"
-                (click)="setTab('cassettes')">Cassettes</button>
-        <button class="tab" [class.active]="activeTab()==='flow'"
-                (click)="setTab('flow')">Cash Flow</button>
-        <button class="tab" [class.active]="activeTab()==='history'"
-                (click)="setTab('history')">Historique</button>
+        <button class="tab" [class.active]="activeTab()==='overview'"  (click)="setTab('overview')">Vue globale</button>
+        <button class="tab" [class.active]="activeTab()==='cashunits'" (click)="setTab('cashunits')">Cash Units</button>
+        <button class="tab" [class.active]="activeTab()==='cassettes'" (click)="setTab('cassettes')">Cassettes</button>
+        <button class="tab" [class.active]="activeTab()==='flow'"      (click)="setTab('flow')">Cash Flow</button>
+        <button class="tab" [class.active]="activeTab()==='history'"   (click)="setTab('history')">Historique</button>
       </div>
-      <button class="btn-reset" (click)="loadAll()" style="margin-left:auto">↻ Rafraîchir</button>
+      <button class="btn-reset" style="margin-left:auto" (click)="loadAll()">↻ Rafraîchir</button>
     </div>
 
-    <!-- ── Filters row ── -->
+    <!-- Filtres communs -->
     <div class="filters-row">
       <div class="filter-group">
         <span class="filter-label">Composant</span>
@@ -46,100 +41,97 @@
           }
         </select>
       </div>
-
       <div class="filter-group">
-        <span class="filter-label">From</span>
+        <span class="filter-label">Du</span>
         <input class="filter-input" type="datetime-local" [(ngModel)]="from" />
       </div>
-
       <div class="filter-group">
-        <span class="filter-label">To</span>
+        <span class="filter-label">Au</span>
         <input class="filter-input" type="datetime-local" [(ngModel)]="to" />
       </div>
-
       <div class="filter-group">
         <span class="filter-label">Limite</span>
-        <input class="filter-input" type="number" min="1" [(ngModel)]="limit" style="min-width:80px" />
+        <input class="filter-input" type="number" min="1" [(ngModel)]="limit" />
       </div>
-
       <button class="btn-apply" (click)="loadHistoryAndFlow()">Appliquer</button>
       <button class="btn-reset"  (click)="resetFilters()">Réinitialiser</button>
     </div>
 
-    <!-- ═══════════════ TAB: OVERVIEW ═══════════════ -->
+
+    <!-- ═══════ ONGLET : VUE GLOBALE ════════════════ -->
+    <!--
+      Ce qu'on montre ici :
+      - Résumé chiffré de l'état de l'ATM en un coup d'œil
+      - Total cash dans la machine, santé des cassettes
+      - Tableau cash par composant (chaque "composant" = module distributeur)
+      - Tableau cassettes avec barre de santé
+    -->
     @if (activeTab() === 'overview') {
       <div class="tab-content">
 
         <!-- KPI Cards -->
         <div class="kpi-grid">
-          <div class="kpi-card">
+          <div class="kpi-card brand">
             <div class="kpi-label">Total Cash ATM</div>
-            <div class="kpi-value mono">
-              {{ overviewStats().totalCash | number:'1.2-2' }}
-            </div>
-            <div class="kpi-sub">
-              Dernière MàJ : {{ overviewStats().lastUpdated | date:'dd/MM/yy HH:mm' }}
-            </div>
+            <div class="kpi-value mono">{{ overviewStats().totalCash | number:'1.2-2' }}</div>
+            <div class="kpi-sub">Toutes devises confondues</div>
           </div>
-
           <div class="kpi-card ok">
-            <div class="kpi-label">Cassettes Healthy</div>
+            <div class="kpi-label">Cassettes Saines</div>
             <div class="kpi-value">{{ overviewStats().healthyCassettes }}</div>
             <div class="kpi-sub">/ {{ overviewStats().totalCassettes }} total</div>
           </div>
-
           <div class="kpi-card warn">
             <div class="kpi-label">Cassettes Low</div>
             <div class="kpi-value">{{ overviewStats().lowCassettes }}</div>
+            <div class="kpi-sub">À recharger bientôt</div>
           </div>
-
           <div class="kpi-card danger">
-            <div class="kpi-label">Cassettes Empty</div>
+            <div class="kpi-label">Cassettes Vides</div>
             <div class="kpi-value">{{ overviewStats().emptyCassettes }}</div>
+            <div class="kpi-sub">Intervention requise</div>
           </div>
-
-          <div class="kpi-card info">
-            <div class="kpi-label">Composants Cash</div>
-            <div class="kpi-value">{{ overviewStats().cashComponents }}</div>
-          </div>
-
           <div class="kpi-card">
-            <div class="kpi-label">Composants Cassettes</div>
-            <div class="kpi-value">{{ cassetteSummary().length }}</div>
+            <div class="kpi-label">Modules Cash</div>
+            <div class="kpi-value">{{ overviewStats().cashComponents }}</div>
+            <div class="kpi-sub">Composants actifs</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Dernière MàJ</div>
+            <div class="kpi-value sm">{{ overviewStats().lastUpdated | date:'dd/MM/yy HH:mm' }}</div>
+            <div class="kpi-sub">Heure de l'ATM</div>
           </div>
         </div>
 
-        <!-- Cash summary per component -->
+        <!-- Cash par composant -->
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Cash par composant (actuel)</span>
-            <span class="panel-badge">{{ overview()?.cashUnitsByComponent?.length }} composants</span>
+            <span class="panel-title">Cash actuel par module distributeur</span>
+            <span class="panel-badge">{{ overview()?.cashUnitsByComponent?.length ?? 0 }} modules</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Composant</th>
-                  <th># Units</th>
+                  <th>Module (Composant)</th>
+                  <th>Nb tiroirs</th>
                   <th>Valeur totale</th>
-                  <th>Dernière MàJ</th>
+                  <th>Dernière remontée</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 @for (comp of overview()?.cashUnitsByComponent ?? []; track comp.componentId) {
                   <tr>
-                    <td>
-                      <button class="comp-chip active" style="margin:0"
-                              (click)="selectComponent(comp.componentId); setTab('cashunits')">
-                        {{ comp.componentName }} <span style="opacity:.6">#{{ comp.componentId }}</span>
-                      </button>
-                    </td>
+                    <td style="font-weight:600">{{ comp.componentName }} <span style="color:var(--text-3);font-weight:400">#{{ comp.componentId }}</span></td>
                     <td class="mono">{{ comp.cashUnits.length }}</td>
-                    <td class="mono" style="font-weight:600;color:var(--info)">
-                      {{ comp.totalCashValue | number:'1.2-2' }}
-                    </td>
-                    <td class="mono" style="color:var(--text-3)">
-                      {{ comp.cashUnits[0]?.timestamp | date:'dd/MM/yy HH:mm' }}
+                    <td class="mono" style="font-weight:600;color:var(--brand)">{{ comp.totalCashValue | number:'1.2-2' }}</td>
+                    <td class="mono" style="color:var(--text-3)">{{ comp.cashUnits[0]?.timestamp | date:'dd/MM/yy HH:mm' }}</td>
+                    <td>
+                      <button class="comp-chip" style="margin:0;font-size:11px"
+                              (click)="selectComponent(comp.componentId); setTab('cashunits')">
+                        Voir détail →
+                      </button>
                     </td>
                   </tr>
                 }
@@ -148,48 +140,46 @@
           </div>
         </div>
 
-        <!-- Cassette overview table -->
+        <!-- Cassettes par composant avec barre de santé -->
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">État des cassettes par composant</span>
+            <span class="panel-title">État des cassettes par module</span>
             <span class="panel-badge">{{ overviewStats().totalCassettes }} cassettes</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Composant</th>
+                  <th>Module</th>
                   <th>Total</th>
-                  <th>✓ Healthy</th>
+                  <th>✓ Saine</th>
                   <th>⚠ Low</th>
-                  <th>✗ Empty</th>
+                  <th>✗ Vide</th>
                   <th>Taux santé</th>
                 </tr>
               </thead>
               <tbody>
                 @for (c of cassetteSummary(); track c.componentId) {
                   <tr>
-                    <td>
-                      <button class="comp-chip" style="margin:0"
-                              (click)="selectComponent(c.componentId); setTab('cassettes')">
-                        {{ c.componentName }} <span style="opacity:.6">#{{ c.componentId }}</span>
-                      </button>
+                    <td style="font-weight:600">
+                      {{ c.componentName }}
+                      <span style="color:var(--text-3);font-weight:400"> #{{ c.componentId }}</span>
                     </td>
                     <td class="mono">{{ c.totalCassettes }}</td>
-                    <td class="mono" style="color:var(--ok)">{{ c.healthyCassettes }}</td>
-                    <td class="mono" style="color:var(--warn)">{{ c.lowCassettes }}</td>
-                    <td class="mono" style="color:var(--danger)">{{ c.emptyCassettes }}</td>
-                    <td style="min-width:100px">
+                    <td class="mono" style="color:var(--ok);font-weight:600">{{ c.healthyCassettes }}</td>
+                    <td class="mono" style="color:var(--warn);font-weight:600">{{ c.lowCassettes }}</td>
+                    <td class="mono" style="color:var(--danger);font-weight:600">{{ c.emptyCassettes }}</td>
+                    <td style="min-width:120px">
                       <div style="display:flex;align-items:center;gap:8px">
-                        <div class="fill-bar-wrap" style="flex:1">
+                        <div class="fill-bar-wrap">
                           <div class="fill-bar"
-                               [class.warn]="c.totalCassettes > 0 && (c.healthyCassettes / c.totalCassettes) < .6"
-                               [class.danger]="c.totalCassettes > 0 && (c.healthyCassettes / c.totalCassettes) < .3"
-                               [style.width.%]="c.totalCassettes > 0 ? (c.healthyCassettes / c.totalCassettes * 100) : 0">
+                               [class.warn]="healthPct(c) < 60"
+                               [class.danger]="healthPct(c) < 30"
+                               [style.width.%]="healthPct(c)">
                           </div>
                         </div>
-                        <span class="mono" style="font-size:11px;color:var(--text-3)">
-                          {{ c.totalCassettes > 0 ? (c.healthyCassettes / c.totalCassettes * 100 | number:'1.0-0') : 0 }}%
+                        <span class="mono" style="font-size:11px;color:var(--text-3);white-space:nowrap">
+                          {{ healthPct(c) }}%
                         </span>
                       </div>
                     </td>
@@ -203,16 +193,24 @@
       </div>
     }
 
-    <!-- ═══════════════ TAB: CASH UNITS ════════════ -->
+
+    <!-- ═══════ ONGLET : CASH UNITS ═════════════════ -->
+    <!--
+      Ce qu'on montre ici :
+      Table CurrentCashUnitStatus — l'état ACTUEL de chaque tiroir à billets.
+      Chaque ligne = 1 tiroir (cashunit) dans 1 module (composant).
+      Colonnes : type (BILLCASSETTE/REJECTCASSETTE), statut, devise, valeur/billet, nb billets, total.
+      Triable sur toutes les colonnes. Filtrable par module.
+    -->
     @if (activeTab() === 'cashunits') {
       <div class="tab-content">
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Cash Units — état actuel</span>
-            <span class="panel-badge">{{ sortedCashUnits().length }} unités</span>
+            <span class="panel-title">État actuel de chaque tiroir à billets</span>
+            <span class="panel-badge">{{ sortedCashUnits().length }} tiroirs</span>
           </div>
 
-          <!-- Component filter chips -->
+          <!-- Chips de filtre par composant -->
           <div class="comp-strip">
             <button class="comp-chip" [class.active]="selectedComponentId() === null"
                     (click)="selectComponent(null)">Tous</button>
@@ -228,53 +226,26 @@
             <table>
               <thead>
                 <tr>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='cashUnitId'"
-                      (click)="sortCash('cashUnitId')">
-                    Unit # {{ sortIcon('cashUnitId', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='componentName'"
-                      (click)="sortCash('componentName')">
-                    Composant {{ sortIcon('componentName', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='typeName'"
-                      (click)="sortCash('typeName')">
-                    Type {{ sortIcon('typeName', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='statusName'"
-                      (click)="sortCash('statusName')">
-                    Statut {{ sortIcon('statusName', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='currencyCode'"
-                      (click)="sortCash('currencyCode')">
-                    Monnaie {{ sortIcon('currencyCode', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='currencyValue'"
-                      (click)="sortCash('currencyValue')">
-                    Valeur unit. {{ sortIcon('currencyValue', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='unitCount'"
-                      (click)="sortCash('unitCount')">
-                    Nb billets {{ sortIcon('unitCount', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='totalValue'"
-                      (click)="sortCash('totalValue')">
-                    Total {{ sortIcon('totalValue', true) }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="cashSortCol()==='timestamp'"
-                      (click)="sortCash('timestamp')">
-                    Timestamp {{ sortIcon('timestamp', true) }}
-                  </th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='cashUnitId'"    (click)="sortCash('cashUnitId')">    Tiroir # {{ sortIcon('cashUnitId',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='componentName'" (click)="sortCash('componentName')"> Module {{ sortIcon('componentName',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='typeName'"      (click)="sortCash('typeName')">      Type {{ sortIcon('typeName',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='statusName'"    (click)="sortCash('statusName')">    Statut {{ sortIcon('statusName',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='currencyCode'"  (click)="sortCash('currencyCode')">  Devise {{ sortIcon('currencyCode',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='currencyValue'" (click)="sortCash('currencyValue')"> Val/billet {{ sortIcon('currencyValue',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='unitCount'"     (click)="sortCash('unitCount')">     Nb billets {{ sortIcon('unitCount',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='totalValue'"    (click)="sortCash('totalValue')">    Total {{ sortIcon('totalValue',true) }}</th>
+                  <th class="sortable" [class.sort-active]="cashSortCol()==='timestamp'"     (click)="sortCash('timestamp')">     Horodatage {{ sortIcon('timestamp',true) }}</th>
                 </tr>
               </thead>
               <tbody>
                 @if (sortedCashUnits().length === 0) {
-                  <tr><td colspan="9" class="empty-state">Aucune donnée.</td></tr>
+                  <tr><td colspan="9" class="empty-state">Aucun tiroir disponible.</td></tr>
                 }
                 @for (u of sortedCashUnits(); track u.cashUnitId + '-' + u.componentId) {
                   <tr>
                     <td class="mono" style="font-weight:600">{{ u.cashUnitId }}</td>
                     <td style="color:var(--text-2)">{{ u.componentName }}</td>
-                    <td style="color:var(--text-3)">{{ u.typeName }}</td>
+                    <td style="color:var(--text-2)">{{ u.typeName }}</td>
                     <td>
                       <span class="status-badge" [ngClass]="statusColor(u.statusName)">
                         <span class="dot"></span>{{ u.statusName }}
@@ -283,12 +254,8 @@
                     <td class="mono">{{ u.currencyCode }}</td>
                     <td class="mono">{{ u.currencyValue | number:'1.2-4' }}</td>
                     <td class="mono" style="font-weight:600">{{ u.unitCount | number }}</td>
-                    <td class="mono" style="font-weight:700;color:var(--info)">
-                      {{ u.totalValue | number:'1.2-2' }}
-                    </td>
-                    <td class="mono" style="color:var(--text-3)">
-                      {{ u.timestamp | date:'dd/MM/yy HH:mm:ss' }}
-                    </td>
+                    <td class="mono" style="font-weight:700;color:var(--brand)">{{ u.totalValue | number:'1.2-2' }}</td>
+                    <td class="mono" style="color:var(--text-3)">{{ u.timestamp | date:'dd/MM/yy HH:mm' }}</td>
                   </tr>
                 }
               </tbody>
@@ -298,45 +265,56 @@
       </div>
     }
 
-    <!-- ═══════════════ TAB: CASSETTES ════════════ -->
+
+    <!-- ═══════ ONGLET : CASSETTES ══════════════════ -->
+    <!--
+      Ce qu'on montre ici :
+      Les cassettes PHYSIQUES (le conteneur qu'on sort et recharge manuellement).
+      Chaque cassette a : une position (slot), un statut, et un contenu détaillé
+      par coupure (ex: 200 billets de 100 MAD).
+      Cliquer sur une cassette déploie le détail par dénomination.
+    -->
     @if (activeTab() === 'cassettes') {
       <div class="tab-content">
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Cassettes physiques</span>
-            <span class="panel-badge">{{ overviewStats().totalCassettes }} total</span>
+            <span class="panel-title">Cassettes physiques — contenu détaillé par coupure</span>
+            <span class="panel-badge">{{ overviewStats().totalCassettes }} cassettes</span>
           </div>
 
           @if (cassetteSummary().length === 0) {
-            <div class="empty-state">Aucune cassette disponible.</div>
+            <div class="empty-state">Aucune cassette trouvée pour cet ATM.</div>
           }
 
           @for (comp of cassetteSummary(); track comp.componentId) {
             <div class="cass-group">
-              <!-- Component header -->
+
+              <!-- En-tête du module -->
               <div class="cass-comp-header">
                 <span>{{ comp.componentName }} #{{ comp.componentId }}</span>
-                <span class="status-badge status--ok">✓ {{ comp.healthyCassettes }}</span>
+                <span class="status-badge status--ok">✓ {{ comp.healthyCassettes }} saine(s)</span>
                 @if (comp.lowCassettes > 0) {
-                  <span class="status-badge status--warn">⚠ {{ comp.lowCassettes }}</span>
+                  <span class="status-badge status--warn">⚠ {{ comp.lowCassettes }} low</span>
                 }
                 @if (comp.emptyCassettes > 0) {
-                  <span class="status-badge status--danger">✗ {{ comp.emptyCassettes }}</span>
+                  <span class="status-badge status--danger">✗ {{ comp.emptyCassettes }} vide(s)</span>
                 }
               </div>
 
-              <!-- Cassette rows -->
+              <!-- Lignes cassettes -->
               @for (cass of comp.cassettes; track cass.cassetteId) {
                 <div class="cass-row"
                      [class.expanded]="expandedCassette() === cass.cassetteId"
                      (click)="toggleCassette(cass.cassetteId)">
                   <div>
                     <div class="cass-label">Position</div>
-                    <div class="cass-val mono">{{ cass.position }}</div>
+                    <div class="cass-val">{{ cass.position }}</div>
                   </div>
                   <div>
                     <div class="cass-label">Type</div>
-                    <div class="cass-val" style="color:var(--text-2)">{{ cass.typeName }}</div>
+                    <div class="cass-val" style="color:var(--text-2);font-family:'DM Sans',sans-serif;font-size:12px">
+                      {{ cass.typeName }}
+                    </div>
                   </div>
                   <div>
                     <div class="cass-label">Statut</div>
@@ -346,24 +324,27 @@
                   </div>
                   <div>
                     <div class="cass-label">Dernière MàJ</div>
-                    <div class="cass-val mono" style="font-size:11px;color:var(--text-3)">
+                    <div class="cass-val" style="font-size:11px;color:var(--text-3)">
                       {{ cass.lastStatusUpdate | date:'dd/MM/yy HH:mm' }}
                     </div>
                   </div>
                   <div class="cass-expand-icon">▾</div>
                 </div>
 
-                <!-- Expanded denomination detail -->
+                <!-- Détail dénominations (au clic) -->
                 @if (expandedCassette() === cass.cassetteId) {
                   <div class="cass-detail">
+                    <div class="cass-detail-title">Contenu par coupure</div>
                     @if (cass.denominations.length === 0) {
-                      <span style="color:var(--text-3);font-size:12px">Aucune donnée de dénomination.</span>
+                      <span style="color:var(--text-3);font-size:12px">
+                        Aucune donnée de coupure disponible.
+                      </span>
                     } @else {
                       <table class="denom-table">
                         <thead>
                           <tr>
-                            <th>Monnaie</th>
-                            <th>Dénomination</th>
+                            <th>Devise</th>
+                            <th>Coupure</th>
                             <th>Quantité</th>
                             <th>Total</th>
                           </tr>
@@ -372,21 +353,20 @@
                           @for (d of cass.denominations; track d.denomination + d.currencyCode) {
                             <tr>
                               <td>{{ d.currencyCode }}</td>
-                              <td>{{ d.denomination | number:'1.2-2' }}</td>
-                              <td style="font-weight:600">{{ d.count | number }}</td>
-                              <td style="color:var(--info);font-weight:700">
-                                {{ d.totalValue | number:'1.2-2' }}
-                              </td>
+                              <td style="font-weight:600">{{ d.denomination | number:'1.2-2' }}</td>
+                              <td>{{ d.count | number }}</td>
+                              <td style="color:var(--brand);font-weight:700">{{ d.totalValue | number:'1.2-2' }}</td>
                             </tr>
                           }
                         </tbody>
                       </table>
                     }
-                    <div style="margin-top:8px;font-size:11px;color:var(--text-3)">
-                      ID cassette: <span class="mono">{{ cass.cassetteId }}</span>
-                      &nbsp;|&nbsp;
-                      Signalée: <span style="color:{{ cass.isReported ? 'var(--ok)' : 'var(--danger)' }}">
-                        {{ cass.isReported ? 'Oui' : 'Non' }}
+                    <div class="cass-meta">
+                      <span>ID cassette : <strong class="mono">{{ cass.cassetteId }}</strong></span>
+                      <span>Signalée :
+                        <strong [style.color]="cass.isReported ? 'var(--ok)' : 'var(--danger)'">
+                          {{ cass.isReported ? 'Oui' : 'Non' }}
+                        </strong>
                       </span>
                     </div>
                   </div>
@@ -398,73 +378,78 @@
       </div>
     }
 
-    <!-- ═══════════════ TAB: CASH FLOW ════════════ -->
+
+    <!-- ═══════ ONGLET : CASH FLOW ══════════════════ -->
+    <!--
+      Ce qu'on montre ici :
+      L'évolution du cash dans un module au fil du temps.
+      Chaque ligne = 1 événement (rechargement ou retrait) calculé
+      comme la différence entre deux états consécutifs dans HistoricalCashUnitStatus_P.
+      Variation positive = rechargement. Variation négative = retraits clients.
+    -->
     @if (activeTab() === 'flow') {
       <div class="tab-content">
-
         @if (!selectedComponentId()) {
           <div class="panel">
             <div class="empty-state">
-              Sélectionnez un composant dans les filtres pour afficher le cash flow.
+              Sélectionnez un module dans les filtres ci-dessus pour afficher le cash flow.
             </div>
           </div>
         } @else if (!cashFlow()) {
           <div class="panel">
-            <div class="empty-state">Aucune donnée cash flow pour ce composant.</div>
+            <div class="empty-state">Aucune donnée de cash flow pour ce module.</div>
           </div>
         } @else {
           <div class="panel">
             <div class="panel-header">
-              <span class="panel-title">Cash Flow — {{ cashFlow()!.componentName }}</span>
+              <span class="panel-title">Variations de cash — {{ cashFlow()!.componentName }}</span>
               <span class="panel-badge">{{ cashFlow()!.currencyCode }}</span>
             </div>
 
-            <!-- Summary -->
+            <!-- Statistiques résumées -->
             <div class="flow-meta">
               <div class="flow-stat">
                 <span class="flow-stat-label">Total actuel</span>
                 <span class="flow-stat-val">{{ cashFlow()!.currentTotal | number:'1.2-2' }}</span>
               </div>
               <div class="flow-stat">
-                <span class="flow-stat-label">Monnaie</span>
+                <span class="flow-stat-label">Devise</span>
                 <span class="flow-stat-val">{{ cashFlow()!.currencyCode }}</span>
               </div>
               <div class="flow-stat">
                 <span class="flow-stat-label">Dernière MàJ</span>
-                <span class="flow-stat-val" style="font-size:14px">
+                <span class="flow-stat-val" style="font-size:15px">
                   {{ cashFlow()!.lastUpdate | date:'dd/MM/yy HH:mm' }}
                 </span>
               </div>
               <div class="flow-stat">
-                <span class="flow-stat-label">Événements</span>
+                <span class="flow-stat-label">Nb événements</span>
                 <span class="flow-stat-val">{{ cashFlow()!.historicalChanges.length }}</span>
               </div>
             </div>
 
-            <!-- History of changes -->
+            <!-- Tableau des variations -->
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Timestamp</th>
-                    <th>Précédent</th>
-                    <th>Actuel</th>
+                    <th>Horodatage</th>
+                    <th>Avant (total)</th>
+                    <th>Après (total)</th>
                     <th>Variation</th>
-                    <th>Nb billets (avant)</th>
-                    <th>Nb billets (après)</th>
+                    <th>Billets avant</th>
+                    <th>Billets après</th>
                   </tr>
                 </thead>
                 <tbody>
                   @if (cashFlow()!.historicalChanges.length === 0) {
                     <tr><td colspan="6" class="empty-state">
-                      Aucun changement historique dans la période sélectionnée.
+                      Aucun événement dans la période sélectionnée.
                     </td></tr>
                   }
                   @for (row of cashFlow()!.historicalChanges; track row.timestamp) {
                     <tr>
-                      <td class="mono" style="color:var(--text-3)">
-                        {{ row.timestamp | date:'dd/MM/yy HH:mm:ss' }}
-                      </td>
+                      <td class="mono" style="color:var(--text-3)">{{ row.timestamp | date:'dd/MM/yy HH:mm:ss' }}</td>
                       <td class="mono">{{ row.previousTotal | number:'1.2-2' }}</td>
                       <td class="mono" style="font-weight:600">{{ row.currentTotal | number:'1.2-2' }}</td>
                       <td class="mono"
@@ -485,19 +470,29 @@
       </div>
     }
 
-    <!-- ═══════════════ TAB: HISTORY ══════════════ -->
+
+    <!-- ═══════ ONGLET : HISTORIQUE ═════════════════ -->
+    <!--
+      Ce qu'on montre ici :
+      Toutes les lignes brutes de HistoricalCashUnitStatus_P.
+      C'est l'archive complète de chaque état signalé par l'ATM.
+      Chaque ligne = 1 remontée d'état pour 1 tiroir à 1 instant précis.
+      Recherche texte, tri sur toutes les colonnes, limite configurable.
+    -->
     @if (activeTab() === 'history') {
       <div class="tab-content">
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Historique Cash Units</span>
-            <span class="panel-badge">{{ filteredHistory().length }} / {{ historyRows().length }} lignes</span>
+            <span class="panel-title">Journal historique complet des tiroirs à billets</span>
+            <span class="panel-badge">
+              {{ filteredHistory().length }} / {{ historyRows().length }} lignes
+            </span>
           </div>
 
-          <!-- Search bar -->
+          <!-- Barre de recherche texte -->
           <div class="search-bar">
             <input class="search-input" type="text"
-                   placeholder="Rechercher composant, type, statut, monnaie…"
+                   placeholder="🔍  Filtrer par module, type, statut, devise…"
                    [(ngModel)]="historySearch" />
           </div>
 
@@ -505,58 +500,29 @@
             <table>
               <thead>
                 <tr>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='timestamp'"
-                      (click)="sortHistory('timestamp')">
-                    Timestamp {{ sortIcon('timestamp') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='componentName'"
-                      (click)="sortHistory('componentName')">
-                    Composant {{ sortIcon('componentName') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='cashUnitId'"
-                      (click)="sortHistory('cashUnitId')">
-                    Unit # {{ sortIcon('cashUnitId') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='typeName'"
-                      (click)="sortHistory('typeName')">
-                    Type {{ sortIcon('typeName') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='statusName'"
-                      (click)="sortHistory('statusName')">
-                    Statut {{ sortIcon('statusName') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='currencyCode'"
-                      (click)="sortHistory('currencyCode')">
-                    Monnaie {{ sortIcon('currencyCode') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='currencyValue'"
-                      (click)="sortHistory('currencyValue')">
-                    Val/billet {{ sortIcon('currencyValue') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='unitCount'"
-                      (click)="sortHistory('unitCount')">
-                    Nb billets {{ sortIcon('unitCount') }}
-                  </th>
-                  <th class="sortable" [class.sort-active]="historySortCol()==='totalValue'"
-                      (click)="sortHistory('totalValue')">
-                    Total {{ sortIcon('totalValue') }}
-                  </th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='timestamp'"     (click)="sortHistory('timestamp')">     Horodatage {{ sortIcon('timestamp') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='componentName'" (click)="sortHistory('componentName')"> Module {{ sortIcon('componentName') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='cashUnitId'"    (click)="sortHistory('cashUnitId')">    Tiroir # {{ sortIcon('cashUnitId') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='typeName'"      (click)="sortHistory('typeName')">      Type {{ sortIcon('typeName') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='statusName'"    (click)="sortHistory('statusName')">    Statut {{ sortIcon('statusName') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='currencyCode'"  (click)="sortHistory('currencyCode')">  Devise {{ sortIcon('currencyCode') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='currencyValue'" (click)="sortHistory('currencyValue')"> Val/billet {{ sortIcon('currencyValue') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='unitCount'"     (click)="sortHistory('unitCount')">     Nb billets {{ sortIcon('unitCount') }}</th>
+                  <th class="sortable" [class.sort-active]="historySortCol()==='totalValue'"    (click)="sortHistory('totalValue')">    Total {{ sortIcon('totalValue') }}</th>
                 </tr>
               </thead>
               <tbody>
                 @if (filteredHistory().length === 0) {
                   <tr><td colspan="9" class="empty-state">
-                    Aucune donnée historique. Ajustez les filtres ou la plage de dates.
+                    Aucun enregistrement. Ajustez les filtres ou élargissez la plage de dates.
                   </td></tr>
                 }
                 @for (h of filteredHistory(); track h.timestamp + h.cashUnitId + h.componentId) {
                   <tr>
-                    <td class="mono" style="color:var(--text-3)">
-                      {{ h.timestamp | date:'dd/MM/yy HH:mm:ss' }}
-                    </td>
+                    <td class="mono" style="color:var(--text-3)">{{ h.timestamp | date:'dd/MM/yy HH:mm:ss' }}</td>
                     <td style="color:var(--text-2)">{{ h.componentName }}</td>
                     <td class="mono" style="font-weight:600">{{ h.cashUnitId }}</td>
-                    <td style="color:var(--text-3)">{{ h.typeName }}</td>
+                    <td style="color:var(--text-2)">{{ h.typeName }}</td>
                     <td>
                       <span class="status-badge" [ngClass]="statusColor(h.statusName)">
                         <span class="dot"></span>{{ h.statusName }}
@@ -565,9 +531,7 @@
                     <td class="mono">{{ h.currencyCode }}</td>
                     <td class="mono">{{ h.currencyValue | number:'1.2-4' }}</td>
                     <td class="mono" style="font-weight:600">{{ h.unitCount | number }}</td>
-                    <td class="mono" style="font-weight:700;color:var(--info)">
-                      {{ h.totalValue | number:'1.2-2' }}
-                    </td>
+                    <td class="mono" style="font-weight:700;color:var(--brand)">{{ h.totalValue | number:'1.2-2' }}</td>
                   </tr>
                 }
               </tbody>
@@ -577,6 +541,6 @@
       </div>
     }
 
-  } <!-- end @if !isLoading && !error -->
+  } <!-- fin @if !isLoading && !error -->
 
 </div>
