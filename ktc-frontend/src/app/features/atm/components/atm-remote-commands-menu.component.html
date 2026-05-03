@@ -1,109 +1,132 @@
-@if (visible()) {
-  <div class="remote-menu" (click)="$event.stopPropagation()">
-    <button
-      type="button"
-      class="remote-menu__trigger"
-      [class.remote-menu__trigger--open]="menuOpen()"
-      (click)="toggleMenu($event)"
-      title="Commandes de la barre opérateur KTC (Refresh, Reboot, Supervisor, Upload…)"
-    >
-      <span class="remote-menu__icon">⚡</span>
-      <span class="remote-menu__label">Actions distantes</span>
-      <span class="remote-menu__chev">{{ menuOpen() ? '▴' : '▾' }}</span>
-    </button>
+<!-- Le bouton "Actions distantes" est TOUJOURS visible dans la barre header -->
+<div class="remote-menu" (click)="$event.stopPropagation()">
 
-    @if (menuOpen()) {
-      <div class="remote-menu__panel" role="menu">
-        @if (loadError()) {
-          <div class="remote-menu__msg remote-menu__msg--err">{{ loadError() }}</div>
-        }
-        @if (mainCommands().length === 0 && uploadCommands().length === 0 && !loadError()) {
-          <div class="remote-menu__msg">
-            Aucune commande reconnue pour la barre opérateur dans
-            <span class="mono">dbo.CommandTypes</span>
-            (Refresh, Reboot, Supervisor, Upload, …).
-          </div>
-        }
-        @for (c of mainCommands(); track c.commandId) {
+  <button
+    type="button"
+    class="remote-menu__trigger"
+    [class.remote-menu__trigger--open]="menuOpen()"
+    (click)="toggleMenu($event)"
+    title="Commandes distantes : Refresh, Reboot, Supervisor, Upload…"
+  >
+    <span class="remote-menu__icon">⚡</span>
+    Actions distantes
+    <span class="remote-menu__chev">▾</span>
+  </button>
+
+  @if (menuOpen()) {
+    <div class="remote-menu__panel" role="menu">
+
+      @if (loadError()) {
+        <div class="remote-menu__msg remote-menu__msg--err">{{ loadError() }}</div>
+      }
+
+      @if (mainCommands().length === 0 && uploadCommands().length === 0 && !loadError()) {
+        <div class="remote-menu__msg">
+          Aucune commande reconnue dans
+          <span class="mono">dbo.CommandTypes</span>.
+        </div>
+      }
+
+      @for (c of mainCommands(); track c.commandId) {
+        <button
+          type="button"
+          class="remote-menu__item"
+          role="menuitem"
+          [title]="c.description"
+          (click)="pickCommand(c, $event)"
+        >
+          {{ displayLabel(c.commandName) }}
+        </button>
+      }
+
+      @if (uploadCommands().length > 0) {
+        <div class="remote-menu__upload-block">
           <button
             type="button"
-            class="remote-menu__item"
-            role="menuitem"
-            [title]="c.description"
-            (click)="pickCommand(c, $event)"
+            class="remote-menu__item remote-menu__item--parent"
+            [class.open]="uploadSubmenuOpen()"
+            (click)="toggleUploadSub($event)"
           >
-            {{ displayLabel(c.commandName) }}
+            <span class="remote-menu__upload-icon">📤</span>
+            Upload
+            <span class="remote-menu__subchev">▸</span>
           </button>
-        }
+          @if (uploadSubmenuOpen()) {
+            <div class="remote-menu__sublist" role="group" aria-label="Sous-menu Upload">
+              @for (c of uploadCommands(); track c.commandId) {
+                <button
+                  type="button"
+                  class="remote-menu__item remote-menu__item--sub"
+                  role="menuitem"
+                  [title]="c.description"
+                  (click)="pickCommand(c, $event)"
+                >
+                  {{ displayLabel(c.commandName) }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
 
-        @if (uploadCommands().length > 0) {
-          <div class="remote-menu__upload-block">
-            <button type="button" class="remote-menu__item remote-menu__item--parent" (click)="toggleUploadSub($event)">
-              <span class="remote-menu__upload-icon">📤</span>
-              Upload
-              <span class="remote-menu__subchev">{{ uploadSubmenuOpen() ? '▾' : '▸' }}</span>
-            </button>
-            @if (uploadSubmenuOpen()) {
-              <div class="remote-menu__sublist" role="group" aria-label="Sous-menu Upload">
-                @for (c of uploadCommands(); track c.commandId) {
-                  <button
-                    type="button"
-                    class="remote-menu__item remote-menu__item--sub"
-                    role="menuitem"
-                    [title]="c.description"
-                    (click)="pickCommand(c, $event)"
-                  >
-                    {{ displayLabel(c.commandName) }}
-                  </button>
-                }
-              </div>
-            }
-          </div>
-        }
-      </div>
-    }
-  </div>
-}
+    </div>
+  }
+</div>
 
+<!-- MODAL SÉLECTION ATMs -->
 @if (modalOpen()) {
   <div class="modal-backdrop" (click)="closePicker()" aria-hidden="true"></div>
   <div class="modal-shell" role="dialog" aria-modal="true" [attr.aria-labelledby]="'remote-cmd-title'">
-    <div class="modal-dialog card" (click)="$event.stopPropagation()">
-      <h2 id="remote-cmd-title" class="modal-title">
-        Choisir les ATMs pour :
-        <strong>{{ displayLabel(activeCommand()?.commandName) }}</strong>
-      </h2>
-      <p class="modal-sub">
-        Cochez les distributeurs concernés. Une ligne est ajoutée dans
-        <span class="mono">dbo.Actions</span> (statut « Immediate »).
-      </p>
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
 
+      <!-- En-tête -->
+      <div class="modal-header">
+        <div class="modal-icon">⚡</div>
+        <div class="modal-titles">
+          <h2 id="remote-cmd-title" class="modal-title">
+            <strong>{{ displayLabel(activeCommand()?.commandName) }}</strong>
+          </h2>
+          <p class="modal-sub">
+            Sélectionnez les ATMs cibles. Une entrée sera créée dans
+            <span class="mono">dbo.Actions</span> (statut Immediate).
+          </p>
+        </div>
+      </div>
+
+      <!-- Opérateur -->
       <div class="modal-field">
         <label for="op-name-remote">Opérateur (optionnel)</label>
         <input
           id="op-name-remote"
           type="text"
           class="modal-input"
-          placeholder="Nom dans l’historique Actions"
+          placeholder="Nom affiché dans l'historique Actions"
           [ngModel]="initiatedBy()"
           (ngModelChange)="initiatedBy.set($event)"
         />
       </div>
 
+      <!-- Liste ATMs -->
       @if (clientsLoading()) {
-        <div class="modal-loading">Chargement des ATMs…</div>
+        <div class="modal-loading">
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          <div class="loading-dot"></div>
+          Chargement des ATMs…
+        </div>
       } @else {
         <div class="atm-list">
           @for (atm of modalClients(); track atm.clientId) {
             <label class="atm-row">
               <input type="checkbox" [checked]="isSelected(atm.clientId)" (change)="toggleClient(atm.clientId)" />
               <span class="atm-row__name">{{ atm.clientName }}</span>
-              <span class="atm-row__ip mono">{{ atm.networkAddress }}</span>
+              <span class="atm-row__ip">{{ atm.networkAddress }}</span>
             </label>
           }
         </div>
       }
 
+      <!-- Tout cocher -->
       <label class="check-all">
         <input
           type="checkbox"
@@ -111,19 +134,34 @@
           [disabled]="clientsLoading() || modalClients().length === 0"
           (change)="onCheckAllChange($event)"
         />
-        Tout cocher
+        Tout sélectionner ({{ modalClients().length }} ATMs)
       </label>
 
+      <!-- Erreur -->
       @if (dispatchError()) {
-        <div class="modal-err">{{ dispatchError() }}</div>
+        <div class="modal-err">⚠ {{ dispatchError() }}</div>
       }
 
+      <!-- Actions -->
       <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" (click)="closePicker()" [disabled]="dispatching()">Annuler</button>
-        <button type="button" class="btn btn-primary" (click)="confirmDispatch()" [disabled]="dispatching() || clientsLoading()">
-          {{ dispatching() ? 'Envoi…' : 'Valider' }}
+        <button type="button" class="btn btn-secondary" (click)="closePicker()" [disabled]="dispatching()">
+          Annuler
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="confirmDispatch()"
+          [disabled]="dispatching() || clientsLoading()"
+        >
+          @if (dispatching()) {
+            <span class="btn-spinner"></span>
+            Envoi en cours…
+          } @else {
+            Envoyer la commande
+          }
         </button>
       </div>
+
     </div>
   </div>
 }

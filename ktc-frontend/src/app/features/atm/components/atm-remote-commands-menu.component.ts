@@ -35,8 +35,12 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
 
   readonly uploadSubmenuOpen = signal(false);
 
-  /** Affiché seulement sur les écrans de gestion des ATMs. */
-  readonly visible = signal(false);
+  /**
+   * Le bouton est désormais TOUJOURS affiché dans le header (fixe).
+   * La visibilité est gérée par le header lui-même.
+   * On conserve `visible` uniquement pour compatibilité éventuelle.
+   */
+  readonly visible = signal(true);
   readonly menuOpen = signal(false);
 
   readonly loadError = signal<string | null>(null);
@@ -52,11 +56,9 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
   readonly modalOpen = computed(() => this.activeCommand() != null);
 
   ngOnInit(): void {
-    this.updateVisible(this.router.url);
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe((e) => {
-        this.updateVisible(e.urlAfterRedirects || e.url);
+      .subscribe(() => {
         this.menuOpen.set(false);
         this.uploadSubmenuOpen.set(false);
       });
@@ -71,12 +73,7 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     this.navSub?.unsubscribe();
   }
 
-  private updateVisible(url: string): void {
-    const path = url.split(/[?#]/)[0];
-    this.visible.set(/^\/admin\/atms(\/|$)/.test(path));
-  }
-
-  /** Pré-coche l’ATM courant sur /admin/atms/:id/... */
+  /** Pré-coche l'ATM courant sur /admin/atms/:id/... */
   private preselectedFromUrl(url: string): number[] {
     const path = url.split(/[?#]/)[0];
     const m = path.match(/\/admin\/atms\/(\d+)(?:\/|$)/);
@@ -94,9 +91,7 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     ev.stopPropagation();
     this.menuOpen.update((v) => {
       const next = !v;
-      if (next) {
-        this.uploadSubmenuOpen.set(false);
-      }
+      if (next) this.uploadSubmenuOpen.set(false);
       return next;
     });
   }
@@ -180,14 +175,17 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
   confirmDispatch(): void {
     const cmd = this.activeCommand();
     if (!cmd) return;
+
     const ids = this.selectedIds();
     if (ids.length === 0) {
       this.dispatchError.set('Cochez au moins un ATM.');
       return;
     }
+
     this.dispatching.set(true);
     this.dispatchError.set(null);
     const initiated = this.initiatedBy().trim();
+
     this.atmService
       .dispatchRemoteCommand({
         commandId: cmd.commandId,
@@ -201,12 +199,12 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
           const skip = res?.skippedClientIds?.length
             ? ` (IDs ignorés : ${res.skippedClientIds.join(', ')})`
             : '';
-          alert(`File d’attente : ${n} action(s) créée(s) dans dbo.Actions.${skip}`);
+          alert(`✓ ${n} action(s) créée(s) dans dbo.Actions.${skip}`);
           this.closePicker();
         },
         error: (err) => {
           this.dispatching.set(false);
-          this.dispatchError.set(err?.error?.message ?? 'Échec de l’envoi.');
+          this.dispatchError.set(err?.error?.message ?? 'Échec de l\'envoi.');
         }
       });
   }
