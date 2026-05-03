@@ -17,6 +17,12 @@
   flex-wrap: wrap;
 }
 
+.detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .title-group {
   display: flex;
   align-items: center;

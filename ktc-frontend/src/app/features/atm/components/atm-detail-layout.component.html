@@ -18,6 +18,9 @@
           <h1 class="page-title">{{ atmData.clientName }}</h1>
           <p class="page-subtitle">ID: #{{ atmData.clientId }} | IP: {{ atmData.networkAddress }}</p>
         </div>
+        <div class="detail-actions">
+          <a routerLink="./schedules" class="btn btn--secondary btn--sm">Schedules</a>
+        </div>
         <span class="badge" [class.badge--ok]="atmData.active" [class.badge--down]="!atmData.active">
           {{ atmData.active ? 'Actif' : 'Inactif' }}
         </span>
@@ -35,6 +38,7 @@
         <a routerLink="./software-info" routerLinkActive="active" class="nav-item">Software Info</a>
         <a routerLink="./certificates" routerLinkActive="active" class="nav-item">Certificates</a>
         <a routerLink="./actions" routerLinkActive="active" class="nav-item">Actions</a>
+        <a routerLink="./schedules" routerLinkActive="active" class="nav-item">Schedules</a>
         <a routerLink="./electronic-journal" routerLinkActive="active" class="nav-item">Electronic Journal</a>
         <a routerLink="./transactions" routerLinkActive="active" class="nav-item">Session/Transaction Data</a>
         <a routerLink="./videojournal" routerLinkActive="active" class="nav-item">VideoJournal</a>

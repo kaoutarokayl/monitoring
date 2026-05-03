@@ -38,6 +38,8 @@ namespace KtcWeb.Application.Interfaces
         Task<List<ReplenishmentDto>> GetReplenishmentsAsync(int clientId, short componentId);
         Task<XfsCountersResponseDto> GetXfsCountersAsync(int clientId, short componentId);
         Task<AtmActionsResponseDto> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to, int? days, string? addedByUser);
+        Task<List<AtmScheduleDto>> GetClientSchedulesAsync(int clientId);
+        Task CreateScheduleAsync(CreateScheduleRequest request);
         Task<List<RemoteCommandTypeDto>> GetRemoteCommandTypesAsync();
         Task<DispatchRemoteActionsResponse> DispatchRemoteActionsAsync(DispatchRemoteActionsRequest request);
         Task<List<ElectronicJournalEntryDto>> GetElectronicJournalAsync(int clientId, DateTime from, DateTime to);

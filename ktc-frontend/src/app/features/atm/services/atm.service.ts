@@ -1,5 +1,5 @@
 export * from '../models/atm.models';
-import { ClientAtm, BusinessDto, BusinessDetailsDto, BranchDto, RegionDto, RegionDetailsDto, HardwareTypeDto, CreateOrUpdateAtmRequest, CreateBranchRequest, CreateBusinessRequest, CreateRegionRequest, AtmComponentStatusDto, AtmAssetHistoryDto, RegionListDto, LastClientContactDto, AtmSoftwareInfoDto, AtmCertificateDto, AtmTicketDto, AppCounterDto, ReplenishmentDto, XfsCountersResponseDto, AtmActionsResponseDto, RemoteCommandTypeDto, DispatchRemoteActionsRequest, DispatchRemoteActionsResponse, ElectronicJournalEntryDto, LookupItemDto, TransactionAuditDto, TransactionSearchCriteria, VideoJournalEventDto, AtmAvailabilityReportDto, AtmCashCassetteOverviewDto, CashFlowReportDto, CashUnitHistoryRowDto, CassetteSummaryDto } from '../models/atm.models';
+import { ClientAtm, BusinessDto, BusinessDetailsDto, BranchDto, RegionDto, RegionDetailsDto, HardwareTypeDto, CreateOrUpdateAtmRequest, CreateBranchRequest, CreateBusinessRequest, CreateRegionRequest, AtmComponentStatusDto, AtmAssetHistoryDto, RegionListDto, LastClientContactDto, AtmSoftwareInfoDto, AtmCertificateDto, AtmTicketDto, AppCounterDto, ReplenishmentDto, XfsCountersResponseDto, AtmActionsResponseDto, RemoteCommandTypeDto, DispatchRemoteActionsRequest, DispatchRemoteActionsResponse, ElectronicJournalEntryDto, LookupItemDto, TransactionAuditDto, TransactionSearchCriteria, VideoJournalEventDto, AtmAvailabilityReportDto, AtmCashCassetteOverviewDto, CashFlowReportDto, CashUnitHistoryRowDto, CassetteSummaryDto, AtmScheduleDto, CreateScheduleRequest } from '../models/atm.models';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -65,6 +65,14 @@ export class AtmService {
 
   getRemoteCommandTypes(): Observable<RemoteCommandTypeDto[]> {
     return this.http.get<RemoteCommandTypeDto[]>(`${this.BASE}/command-types`);
+  }
+
+  getClientSchedules(clientId: number): Observable<AtmScheduleDto[]> {
+    return this.http.get<AtmScheduleDto[]>(`${this.BASE}/clients/${clientId}/schedules`);
+  }
+
+  createSchedule(body: CreateScheduleRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.BASE}/schedules`, body);
   }
 
   dispatchRemoteCommand(body: DispatchRemoteActionsRequest): Observable<DispatchRemoteActionsResponse> {

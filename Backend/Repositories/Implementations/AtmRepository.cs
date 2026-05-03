@@ -1,5 +1,3 @@
-
-
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -366,6 +364,170 @@ namespace KtcWeb.Infrastructure.Repositories
                 Items = visible.Take(500).ToList(),
                 AddedByUsers = distinctUsers
             };
+        }
+
+        // Exact types from dbo.Schedules DDL:
+        //   schedule_id          int        -> int
+        //   group_id             int        -> int   (NOT smallint!)
+        //   command_id           tinyint    -> byte
+        //   business_id          smallint   -> short
+        //   performactioneverytime bit      -> bool
+        // dbo.Clients.business_id           smallint -> short
+        private sealed class ScheduleRaw
+        {
+            public int     ScheduleId             { get; set; }
+            public string  ScheduleName           { get; set; } = string.Empty;
+            public string  Frequency              { get; set; } = string.Empty;
+            public string  NextDue                { get; set; } = string.Empty;
+            public int     GroupId                { get; set; }   // int
+            public string  GroupName              { get; set; } = string.Empty;
+            public byte    CommandId              { get; set; }   // tinyint
+            public string  CommandName            { get; set; } = string.Empty;
+            public string  Comments               { get; set; } = string.Empty;
+            public string? LastActioned           { get; set; }
+            public short   BusinessId             { get; set; }   // smallint
+            public string  BusinessName           { get; set; } = string.Empty;
+            public bool    PerformActionEveryTime { get; set; }   // bit
+        }
+
+        private static List<AtmScheduleDto> MapScheduleRaw(List<ScheduleRaw> rows) =>
+            rows.Select(r => new AtmScheduleDto
+            {
+                ScheduleId             = r.ScheduleId,
+                ScheduleName           = r.ScheduleName,
+                Frequency              = r.Frequency,
+                NextDue                = r.NextDue,
+                GroupId                = r.GroupId,
+                GroupName              = r.GroupName,
+                CommandId              = r.CommandId,
+                CommandName            = r.CommandName,
+                Comments               = r.Comments,
+                LastActioned           = r.LastActioned,
+                BusinessId             = r.BusinessId,
+                BusinessName           = r.BusinessName,
+                PerformActionEveryTime = r.PerformActionEveryTime
+            }).ToList();
+
+        private class ClientBusinessId
+        {
+            public short BusinessId { get; set; }  // smallint in dbo.Clients
+        }
+
+        public async Task<List<AtmScheduleDto>> GetClientSchedulesAsync(int clientId)
+        {
+            try
+            {
+                var hasGroupClients = await TableExistsAsync("GroupClients");
+
+                // No SQL CAST needed — ScheduleRaw properties exactly match the native DB column types.
+                const string selectCols = @"
+                            s.schedule_id          AS ScheduleId,
+                            s.schedulename         AS ScheduleName,
+                            s.frequency            AS Frequency,
+                            CONVERT(varchar(19), s.nextdue, 120) AS NextDue,
+                            ISNULL(s.group_id,    0)  AS GroupId,
+                            ISNULL(g.groupname,  N'') AS GroupName,
+                            ISNULL(s.command_id,  0)  AS CommandId,
+                            ISNULL(ct.commandname,N'') AS CommandName,
+                            CAST(ISNULL(s.comments, N'<comments />') AS nvarchar(max)) AS Comments,
+                            CONVERT(varchar(19), s.lastactioned, 120) AS LastActioned,
+                            ISNULL(s.business_id, 0)  AS BusinessId,
+                            ISNULL(b.businessname,N'') AS BusinessName,
+                            ISNULL(s.performactioneverytime, 0) AS PerformActionEveryTime";
+
+                if (hasGroupClients)
+                {
+                    var rows = await _context.Database.SqlQueryRaw<ScheduleRaw>(@"
+                        SELECT " + selectCols + @"
+                        FROM dbo.Schedules s
+                        LEFT JOIN dbo.GroupClients gc ON gc.group_id = s.group_id
+                                                      AND gc.client_id = {0}
+                        LEFT JOIN dbo.Groups g        ON g.group_id    = s.group_id
+                        LEFT JOIN dbo.CommandTypes ct ON ct.command_id  = s.command_id
+                        LEFT JOIN dbo.Businesses b    ON b.business_id  = s.business_id
+                        WHERE gc.client_id IS NOT NULL
+                           OR ISNULL(s.group_id, 0) = 0
+                        ORDER BY s.nextdue ASC", clientId).ToListAsync();
+
+                    return MapScheduleRaw(rows);
+                }
+                else
+                {
+                    var clientInfo = await _context.Database.SqlQueryRaw<ClientBusinessId>(@"
+                        SELECT TOP 1 business_id AS BusinessId
+                        FROM dbo.Clients
+                        WHERE client_id = {0}", clientId).FirstOrDefaultAsync();
+
+                    if (clientInfo == null)
+                        return new List<AtmScheduleDto>();
+
+                    var rows = await _context.Database.SqlQueryRaw<ScheduleRaw>(@"
+                        SELECT " + selectCols + @"
+                        FROM dbo.Schedules s
+                        LEFT JOIN dbo.Groups g        ON g.group_id    = s.group_id
+                        LEFT JOIN dbo.CommandTypes ct ON ct.command_id  = s.command_id
+                        LEFT JOIN dbo.Businesses b    ON b.business_id  = s.business_id
+                        WHERE s.business_id = {0}
+                           OR s.business_id = 0
+                        ORDER BY s.nextdue ASC", clientInfo.BusinessId).ToListAsync();
+
+                    return MapScheduleRaw(rows);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetClientSchedulesAsync failed: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task CreateScheduleAsync(CreateScheduleRequest request)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            if (string.IsNullOrWhiteSpace(request.ScheduleName))
+                throw new InvalidOperationException("Le nom du schedule est requis.");
+
+            // BusinessId peut légitimement être 0 (DEFAULT dans dbo.Schedules),
+            // on ne bloque pas ici — la FK SQL rejettera un ID vraiment absent.
+
+            // Build comments - keep it simple for now
+            var comments = request.Comments ?? "";
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    INSERT INTO dbo.Schedules (
+                        schedulename,
+                        frequency,
+                        nextdue,
+                        group_id,
+                        command_id,
+                        commandparams,
+                        comments,
+                        lastactioned,
+                        business_id,
+                        edited_by,
+                        performactioneverytime)
+                    VALUES (
+                        {0}, {1}, {2}, {3}, {4},
+                        {5}, {6}, NULL, {7}, 0, {8})",
+                    request.ScheduleName,
+                    request.Frequency ?? "Once",
+                    request.NextDue,
+                    request.GroupId > 0 ? (object?)request.GroupId : DBNull.Value,
+                    request.CommandId > 0 ? (object?)request.CommandId : DBNull.Value,
+                    "<params />",  // commandparams
+                    comments,       // comments - try as text first
+                    request.BusinessId,
+                    request.PerformActionEveryTime ? 1 : 0);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateScheduleAsync failed: {ex.Message}");
+                throw new InvalidOperationException($"Impossible d'insérer le schedule: {ex.Message}", ex);
+            }
         }
 
         public Task<List<RemoteCommandTypeDto>> GetRemoteCommandTypesAsync()
@@ -1229,5 +1391,3 @@ namespace KtcWeb.Infrastructure.Repositories
         }
     }
 }
-
-

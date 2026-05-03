@@ -423,6 +423,38 @@ public async Task<IActionResult> UpdateBranch(short id, [FromBody] UpdateBranchR
             }
         }
 
+        [HttpGet("clients/{id}/schedules")]
+        public async Task<ActionResult<List<AtmScheduleDto>>> GetClientSchedules(int id)
+        {
+            try
+            {
+                var schedules = await _service.GetClientSchedulesAsync(id);
+                return Ok(schedules);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("schedules")]
+        public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request)
+        {
+            try
+            {
+                await _service.CreateScheduleAsync(request);
+                return Ok(new { message = "Schedule créé avec succès." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("command-types")]
         public async Task<ActionResult<List<RemoteCommandTypeDto>>> GetRemoteCommandTypes()
         {

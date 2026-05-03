@@ -259,6 +259,33 @@ export interface AtmActionDto {
   lastComment: string;
 }
 
+export interface AtmScheduleDto {
+  scheduleId: number;
+  scheduleName: string;
+  frequency: string;
+  nextDue: string;
+  groupId: number;
+  groupName: string;
+  commandId: number;
+  commandName: string;
+  comments: string;
+  lastActioned?: string | null;
+  businessId: number;
+  businessName: string;
+  performActionEveryTime: boolean;
+}
+
+export interface CreateScheduleRequest {
+  scheduleName: string;
+  frequency: string;
+  nextDue: string;
+  groupId: number;
+  commandId: number;
+  comments?: string;
+  businessId: number;
+  performActionEveryTime: boolean;
+}
+
 /** Réponse API GET clients/{id}/actions : historique dbo.Actions + utilisateurs pour filtre */
 export interface AtmActionsResponseDto {
   items: AtmActionDto[];
