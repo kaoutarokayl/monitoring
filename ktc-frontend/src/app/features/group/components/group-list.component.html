@@ -61,7 +61,7 @@
             <div class="list-item-content">
               <div class="list-item-title">{{ group.groupName }}</div>
               <div class="list-item-meta">
-                <span class="meta-badge">Type: {{ groupTypeLabel(group.groupTypeId) }}</span>
+                <span class="meta-badge type-{{ group.groupTypeId ?? 0 }}">{{ groupTypeLabel(group.groupTypeId) }}</span>
               </div>
             </div>
             <div class="list-item-actions">
@@ -69,16 +69,12 @@
                 class="icon-btn icon-btn--sm"
                 title="Modifier"
                 (click)="goEdit(group.groupId); $event.stopPropagation()"
-              >
-                ✏️
-              </button>
+              >✏️</button>
               <button
                 class="icon-btn icon-btn--sm icon-btn--del"
                 title="Supprimer"
                 (click)="confirmDelete(group); $event.stopPropagation()"
-              >
-                🗑️
-              </button>
+              >🗑️</button>
             </div>
           </div>
         </div>
@@ -89,45 +85,106 @@
          COLONNE 2 : DÉTAILS DU GROUPE
     ════════════════════════════════════════════════════════════════════ -->
     <div class="col-center">
+
+      <!-- Empty state -->
       <div *ngIf="!selectedGroupId()" class="card empty-card">
         <div class="empty-placeholder">
+          <div class="empty-icon">📂</div>
           <p>Sélectionnez un groupe</p>
         </div>
       </div>
 
-      <div *ngIf="selectedGroupId() && selectedGroupDtl()" class="card">
-        <div class="details-panel">
-          <!-- Header -->
-          <div class="details-head">
+      <!-- Loading details -->
+      <div *ngIf="selectedGroupId() && !selectedGroupDtl()" class="card empty-card">
+        <div class="state-box">
+          <div class="spinner"></div>
+          <p>Chargement…</p>
+        </div>
+      </div>
+
+      <!-- Details content -->
+      <div *ngIf="selectedGroupId() && selectedGroupDtl()" class="card details-full-card">
+
+        <!-- ── Header ── -->
+        <div class="details-header-bar">
+          <div class="details-header-left">
             <h2 class="details-title">{{ selectedGroupDtl()!.groupName }}</h2>
-            <span class="type-badge type-{{ selectedGroupDtl()!.groupTypeId ?? 0 }}">
-              {{ groupTypeLabel(selectedGroupDtl()!.groupTypeId) }}
-            </span>
-          </div>
-
-          <!-- Description -->
-          <div *ngIf="selectedGroupDtl()!.groupDescription" class="info-block">
-            <span class="info-label">Description</span>
-            <p class="info-value">{{ selectedGroupDtl()!.groupDescription }}</p>
-          </div>
-
-          <!-- Query -->
-          <div *ngIf="selectedGroupDtl()!.groupQuery" class="info-block">
-            <span class="info-label">Requête</span>
-            <code class="info-code">{{ selectedGroupDtl()!.groupQuery }}</code>
-          </div>
-
-          <!-- Meta -->
-          <div class="meta-row">
-            <div class="meta-item" *ngIf="selectedGroupDtl()!.evaluationInterval">
-              <span class="meta-label">Intervalle:</span>
-              <span class="meta-value">{{ selectedGroupDtl()!.evaluationInterval }} min</span>
+            <div class="details-meta-row">
+              <span class="type-badge type-{{ selectedGroupDtl()!.groupTypeId ?? 0 }}">
+                {{ groupTypeLabel(selectedGroupDtl()!.groupTypeId) }}
+              </span>
+              <span *ngIf="selectedGroupDtl()!.evaluationInterval" class="meta-chip">
+                ⏱ {{ selectedGroupDtl()!.evaluationInterval }} min
+              </span>
+              <span *ngIf="selectedGroupDtl()!.includeMothballed" class="meta-chip meta-chip--warn">
+                ⚠ Inclut désactivés
+              </span>
             </div>
-            <div class="meta-item" *ngIf="selectedGroupDtl()!.includeMothballed">
-              <span class="meta-label">⚠️ Inclut désactivés</span>
+          </div>
+          <div class="details-header-actions">
+            <button class="btn btn-secondary btn--sm" (click)="goEdit(selectedGroupDtl()!.groupId)">✏️ Modifier</button>
+            <button class="btn btn-danger btn--sm" (click)="confirmDelete(selectedGroupDtl()!)">Supprimer</button>
+          </div>
+        </div>
+
+        <!-- ── KPI Row ── -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <span class="kpi-val">{{ selectedGroupDtl()!.clients?.length ?? 0 }}</span>
+            <span class="kpi-lbl">ATMs total</span>
+          </div>
+          <div class="kpi-card kpi-card--ok">
+            <span class="kpi-val">{{ (selectedGroupDtl()!.clients ?? []).filter(c => c.active).length }}</span>
+            <span class="kpi-lbl">Actifs</span>
+          </div>
+          <div class="kpi-card kpi-card--down">
+            <span class="kpi-val">{{ (selectedGroupDtl()!.clients ?? []).filter(c => !c.active).length }}</span>
+            <span class="kpi-lbl">Inactifs</span>
+          </div>
+        </div>
+
+        <!-- ── Description ── -->
+        <div *ngIf="selectedGroupDtl()!.groupDescription" class="detail-section">
+          <div class="detail-section-head">
+            <span class="section-label">Description</span>
+          </div>
+          <p class="detail-text">{{ selectedGroupDtl()!.groupDescription }}</p>
+        </div>
+
+        <!-- ── Query ── -->
+        <div *ngIf="selectedGroupDtl()!.groupQuery" class="detail-section">
+          <div class="detail-section-head">
+            <span class="section-label">Requête dynamique</span>
+          </div>
+          <code class="detail-code">{{ selectedGroupDtl()!.groupQuery }}</code>
+        </div>
+
+        <!-- ── Properties Grid ── -->
+        <div class="detail-section">
+          <div class="detail-section-head">
+            <span class="section-label">Propriétés</span>
+          </div>
+          <div class="props-grid">
+            <div class="prop-item">
+              <span class="prop-label">ID</span>
+              <span class="prop-value prop-mono">#{{ selectedGroupDtl()!.groupId }}</span>
+            </div>
+            <div class="prop-item">
+              <span class="prop-label">Type</span>
+              <span class="type-badge type-{{ selectedGroupDtl()!.groupTypeId ?? 0 }}">{{ groupTypeLabel(selectedGroupDtl()!.groupTypeId) }}</span>
+            </div>
+            <div class="prop-item">
+              <span class="prop-label">Intervalle</span>
+              <span class="prop-value">{{ selectedGroupDtl()!.evaluationInterval ? selectedGroupDtl()!.evaluationInterval + ' min' : '—' }}</span>
+            </div>
+            <div class="prop-item">
+              <span class="prop-label">Désactivés inclus</span>
+              <span *ngIf="selectedGroupDtl()!.includeMothballed" class="prop-flag prop-flag--warn">Oui</span>
+              <span *ngIf="!selectedGroupDtl()!.includeMothballed" class="prop-value prop-muted">Non</span>
             </div>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -142,23 +199,23 @@
       </div>
 
       <div *ngIf="selectedGroupId() && selectedGroupDtl()" class="card">
+
         <!-- Clients header -->
         <div class="col-head">
-          <h3 class="col-title">Clients ({{ selectedGroupDtl()!.clients?.length ?? 0 }})</h3>
+          <h3 class="col-title">Clients actuels</h3>
+          <span class="col-badge col-badge--ok">
+            {{ (selectedGroupDtl()!.clients ?? []).filter(c => c.active).length }} actifs
+          </span>
         </div>
 
-        <!-- Tabs / Sections -->
         <div class="clients-tabs">
-          <!-- TAB 1: Clients actuels -->
-          <div class="tab-section active">
-            <h4 class="tab-title">Clients actuels</h4>
 
-            <!-- Empty -->
+          <!-- ── Clients actuels ── -->
+          <div class="tab-section">
             <div *ngIf="!selectedGroupDtl()!.clients || selectedGroupDtl()!.clients!.length === 0" class="empty-clients">
-              <p>Aucun client</p>
+              <p>Aucun client dans ce groupe</p>
             </div>
 
-            <!-- List -->
             <div *ngIf="selectedGroupDtl()!.clients && selectedGroupDtl()!.clients!.length > 0" class="clients-list">
               <div *ngFor="let client of selectedGroupDtl()!.clients" class="client-row">
                 <div class="client-status-dot"
@@ -171,38 +228,40 @@
                     <code class="client-ip">{{ client.networkAddress }}</code>
                   </div>
                 </div>
+                <span class="status-chip" [class.chip--ok]="client.active" [class.chip--down]="!client.active">
+                  {{ client.active ? 'Actif' : 'Inactif' }}
+                </span>
                 <button
                   class="icon-btn icon-btn--del"
                   title="Retirer"
                   (click)="removeClientFromGroup(client.clientId)"
-                >
-                  🗑️
-                </button>
+                >🗑️</button>
               </div>
             </div>
           </div>
 
-          <!-- TAB 2: Ajouter des clients -->
-          <div class="tab-section">
-            <h4 class="tab-title">Ajouter des clients</h4>
+          <!-- ── Ajouter des clients ── -->
+          <div class="add-section">
+            <div class="add-section-head">
+              <h4 class="tab-title">Ajouter des clients</h4>
+            </div>
 
-            <!-- Recherche -->
-            <input
-              class="search-input search-input--sm"
-              type="text"
-              placeholder="Rechercher ATM…"
-              [(ngModel)]="clientSearch"
-              (ngModelChange)="clientSearch.set($event)"
-              (focus)="loadAvailableAtms()"
-            />
+            <div class="atm-search-wrap">
+              <input
+                class="search-input"
+                type="text"
+                placeholder="Rechercher ATM…"
+                [(ngModel)]="clientSearch"
+                (ngModelChange)="clientSearch.set($event)"
+                (focus)="loadAvailableAtms()"
+              />
+            </div>
 
-            <!-- Loading -->
             <div *ngIf="loadingAtms()" class="state-box">
               <div class="spinner"></div>
               <p>Chargement…</p>
             </div>
 
-            <!-- Available ATMs -->
             <div *ngIf="!loadingAtms()" class="atms-list">
               <div *ngIf="availableAtms().length === 0" class="empty-state">
                 <p>Aucun ATM disponible</p>
@@ -228,7 +287,6 @@
               </div>
             </div>
 
-            <!-- Selection footer -->
             <div *ngIf="selectedClientIds().size > 0" class="selection-footer">
               <span class="selection-count">{{ selectedClientIds().size }} sélectionné{{ selectedClientIds().size > 1 ? 's' : '' }}</span>
               <button
@@ -240,6 +298,7 @@
               </button>
             </div>
           </div>
+
         </div>
       </div>
     </div>
