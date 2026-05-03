@@ -1,21 +1,40 @@
 <div class="panel">
+
+  <!-- ===== HEADER ===== -->
   <div class="panel-header">
-    <div>
-      <h2 class="page-title">Schedules planifiés</h2>
-      <p class="page-subtitle">Schedules récupérés depuis <span class="mono">dbo.Schedules</span> pour cet ATM.</p>
+    <div class="panel-header-left">
+      <div class="panel-icon">🗓</div>
+      <div>
+        <h2 class="page-title">Schedules planifiés</h2>
+        <p class="page-subtitle">Depuis <span class="mono">dbo.Schedules</span> pour cet ATM</p>
+      </div>
     </div>
     <button class="btn btn--primary" type="button" (click)="toggleCreatePane()">
-      {{ createPaneOpen() ? 'Fermer' : 'Nouveau schedule' }}
+      @if (createPaneOpen()) { ✕ Fermer } @else { + Nouveau schedule }
     </button>
   </div>
 
+  <!-- ===== BUILDER ===== -->
   @if (createPaneOpen()) {
     <section class="schedule-builder">
+      <p class="builder-title">Nouveau schedule</p>
+
       <div class="schedule-builder__grid">
+
+        <!-- Nom -->
         <div class="field">
           <label for="scheduleName">Nom du schedule</label>
-          <input id="scheduleName" class="control" type="text" [value]="scheduleName()" (input)="onScheduleNameInput($event)" />
+          <input
+            id="scheduleName"
+            class="control"
+            type="text"
+            placeholder="Ex. Reboot hebdomadaire"
+            [value]="scheduleName()"
+            (input)="onScheduleNameInput($event)"
+          />
         </div>
+
+        <!-- Groupe -->
         <div class="field">
           <label for="groupId">Groupe ATM</label>
           <select id="groupId" class="control" [value]="selectedGroupId()" (change)="onGroupChange($event)">
@@ -25,6 +44,8 @@
             }
           </select>
         </div>
+
+        <!-- Commande -->
         <div class="field">
           <label for="commandId">Commande</label>
           <select id="commandId" class="control" [value]="selectedCommandId()" (change)="onCommandChange($event)">
@@ -34,73 +55,123 @@
             }
           </select>
         </div>
-        <div class="field">
-          <label for="frequency">Fréquence</label>
-          <input id="frequency" class="control" type="text" [value]="frequency()" (input)="onFrequencyInput($event)" placeholder="Once, Daily, Weekly…" />
+
+        <!-- Fréquence — chips -->
+        <div class="field field--full">
+          <label>Fréquence</label>
+          <div class="freq-chips">
+            @for (opt of frequencyOptions; track opt.value) {
+              <button
+                type="button"
+                class="freq-chip"
+                [class.freq-chip--active]="frequency() === opt.value"
+                (click)="setFrequency(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
         </div>
+
+        <!-- Prochaine exécution -->
         <div class="field">
           <label for="nextDue">Prochaine exécution</label>
-          <input id="nextDue" class="control" type="datetime-local" [value]="nextDue()" (input)="onNextDueInput($event)" />
+          <input
+            id="nextDue"
+            class="control"
+            type="datetime-local"
+            [value]="nextDue()"
+            (input)="onNextDueInput($event)"
+          />
         </div>
+
+        <!-- Checkbox exécuter à chaque -->
         <div class="field field--checkbox">
-          <label>
-            <input type="checkbox" [checked]="performEveryTime()" (change)="onPerformEveryTimeChange($event)" />
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="performEveryTime()"
+              (change)="onPerformEveryTimeChange($event)"
+            />
             Exécuter à chaque échéance
           </label>
         </div>
+
+        <!-- Commentaires -->
+        <div class="field field--full">
+          <label for="comments">Commentaires</label>
+          <textarea
+            id="comments"
+            class="control"
+            rows="3"
+            placeholder="Notes ou informations complémentaires…"
+            [value]="comments()"
+            (input)="onCommentsInput($event)"
+          ></textarea>
+        </div>
+
       </div>
-      <div class="field">
-        <label for="comments">Commentaires</label>
-        <textarea id="comments" class="control" rows="3" [value]="comments()" (input)="onCommentsInput($event)"></textarea>
-      </div>
+
       @if (createError()) {
-        <div class="alert alert--error">{{ createError() }}</div>
+        <div class="alert alert--error">⚠ {{ createError() }}</div>
       }
       @if (createSuccess()) {
-        <div class="alert alert--success">{{ createSuccess() }}</div>
+        <div class="alert alert--success">✓ {{ createSuccess() }}</div>
       }
+
       <div class="form-actions">
+        <button class="btn btn--ghost" type="button" (click)="toggleCreatePane()">Annuler</button>
         <button class="btn btn--primary" type="button" (click)="createSchedule()">Créer le schedule</button>
       </div>
     </section>
   }
 
+  <!-- ===== TABLE / ÉTATS ===== -->
   @if (error()) {
-    <div class="state state--error">{{ error() }}</div>
+    <div class="state state--error">⚠ {{ error() }}</div>
   } @else if (isLoading()) {
-    <div class="state state--loading"><span class="spinner"></span>Chargement…</div>
+    <div class="state state--loading"><span class="spinner"></span> Chargement des schedules…</div>
   } @else if (!hasSchedules()) {
     <div class="state state--empty">Aucun schedule associé à cet ATM.</div>
   } @else {
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Groupe</th>
-            <th>Commande</th>
-            <th>Fréquence</th>
-            <th>Prochaine exécution</th>
-            <th>Dernière action</th>
-            <th>Business</th>
-            <th>Commentaire</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (schedule of sortedSchedules(); track schedule.scheduleId) {
+    <div class="table-area">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
             <tr>
-              <td>{{ schedule.scheduleName }}</td>
-              <td>{{ schedule.groupName }}</td>
-              <td>{{ schedule.commandName }}</td>
-              <td>{{ schedule.frequency }}</td>
-              <td class="mono">{{ schedule.nextDue }}</td>
-              <td class="mono">{{ schedule.lastActioned || '—' }}</td>
-              <td>{{ schedule.businessName || '—' }}</td>
-              <td>{{ schedule.comments || '—' }}</td>
+              <th>Nom</th>
+              <th>Groupe</th>
+              <th>Commande</th>
+              <th>Fréquence</th>
+              <th>Prochaine exécution</th>
+              <th>Dernière action</th>
+              <th>Business</th>
+              <th>Commentaire</th>
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (schedule of sortedSchedules(); track schedule.scheduleId) {
+              <tr>
+                <td style="font-weight:600;">{{ schedule.scheduleName }}</td>
+                <td>{{ schedule.groupName }}</td>
+                <td>{{ schedule.commandName }}</td>
+                <td>
+                  <span class="freq-badge {{ freqBadgeClass(schedule.frequency) }}">
+                    {{ schedule.frequency }}
+                  </span>
+                </td>
+                <td class="mono">{{ schedule.nextDue }}</td>
+                <td class="mono">{{ schedule.lastActioned || '—' }}</td>
+                <td>{{ schedule.businessName || '—' }}</td>
+                <td style="color:#64748b;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" [title]="schedule.comments">
+                  {{ schedule.comments || '—' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   }
+
 </div>
