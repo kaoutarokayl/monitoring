@@ -126,7 +126,8 @@
             <ul class="tree-children" *ngIf="isBranchExpanded(branch.branchId)">
 
               <li class="leaf-node"
-                  *ngFor="let client of branch.clients">
+                  *ngFor="let client of branch.clients"
+                  (click)="goAtmStatus(client.clientId)">
 
                 <span class="status-dot"
                       [class.dot-ok]="client.active"

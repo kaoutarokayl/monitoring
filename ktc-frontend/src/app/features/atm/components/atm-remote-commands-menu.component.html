@@ -106,7 +106,124 @@
         />
       </div>
 
+      <!-- === FORMULAIRES D'UPLOAD SPÉCIFIQUES === -->
+
+      <!-- Upload Trace -->
+      @if (uploadType() === 'trace') {
+        <div class="modal-field">
+          <label for="trace-type">Type de trace</label>
+          <select
+            id="trace-type"
+            class="modal-input"
+            [ngModel]="traceParams().traceType"
+            (ngModelChange)="traceParams.update(p => ({ ...p, traceType: $event }))"
+          >
+            <option value="Active Trace">Active Trace</option>
+            <option value="Inactive Trace">Inactive Trace</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label for="trace-filter">Filtre temporel</label>
+          <select
+            id="trace-filter"
+            class="modal-input"
+            [ngModel]="traceParams().timeFilterType"
+            (ngModelChange)="traceParams.update(p => ({ ...p, timeFilterType: $event }))"
+          >
+            <option value="last30min">Dernières 30 minutes</option>
+            <option value="last1hour">Dernière 1 heure</option>
+            <option value="custom">Filtre personnalisé</option>
+          </select>
+        </div>
+        @if (traceParams().timeFilterType === 'custom') {
+          <div class="modal-field">
+            <label for="trace-custom">Filtre personnalisé</label>
+            <input
+              id="trace-custom"
+              type="text"
+              class="modal-input"
+              placeholder="Ex: My Custom Filter"
+              [ngModel]="traceParams().customFilterValue"
+              (ngModelChange)="traceParams.update(p => ({ ...p, customFilterValue: $event }))"
+            />
+          </div>
+        }
+      }
+
+      <!-- Upload Trace Backup -->
+      @if (uploadType() === 'traceBackup') {
+        <div class="modal-field">
+          <label for="backup-start">Date de début</label>
+          <input
+            id="backup-start"
+            type="datetime-local"
+            class="modal-input"
+            [ngModel]="traceBackupParams().startDate"
+            (ngModelChange)="traceBackupParams.update(p => ({ ...p, startDate: $event }))"
+          />
+        </div>
+        <div class="modal-field">
+          <label for="backup-end">Date de fin</label>
+          <input
+            id="backup-end"
+            type="datetime-local"
+            class="modal-input"
+            [ngModel]="traceBackupParams().endDate"
+            (ngModelChange)="traceBackupParams.update(p => ({ ...p, endDate: $event }))"
+          />
+        </div>
+      }
+
+      <!-- Upload Event Log -->
+      @if (uploadType() === 'eventLog') {
+        <div class="modal-field">
+          <label for="log-type">Type de journal d'événements</label>
+          <select
+            id="log-type"
+            class="modal-input"
+            [ngModel]="eventLogParams().logType"
+            (ngModelChange)="eventLogParams.update(p => ({ ...p, logType: $event }))"
+          >
+            <option value="Application">Application</option>
+            <option value="System">Système</option>
+            <option value="Other">Autre</option>
+            <option value="CustomFilter">Filtre personnalisé</option>
+          </select>
+        </div>
+        @if (eventLogParams().logType === 'CustomFilter') {
+          <div class="modal-field">
+            <label for="log-custom">Filtre personnalisé</label>
+            <input
+              id="log-custom"
+              type="text"
+              class="modal-input"
+              placeholder="Ex: MyCustomFilter"
+              [ngModel]="eventLogParams().customFilter"
+              (ngModelChange)="eventLogParams.update(p => ({ ...p, customFilter: $event }))"
+            />
+          </div>
+        }
+      }
+
+      <!-- Upload Registry -->
+      @if (uploadType() === 'registry') {
+        <div class="modal-field">
+          <label for="registry-key">Clé de registre</label>
+          <input
+            id="registry-key"
+            type="text"
+            class="modal-input"
+            placeholder="Ex: HKLM\Software\..."
+            [ngModel]="registryParams().registryKeyName"
+            (ngModelChange)="registryParams.update(p => ({ ...p, registryKeyName: $event }))"
+          />
+        </div>
+      }
+
       <!-- Liste ATMs -->
+      <div class="modal-field">
+        <label>ATMs cibles</label>
+      </div>
       @if (clientsLoading()) {
         <div class="modal-loading">
           <div class="loading-dot"></div>

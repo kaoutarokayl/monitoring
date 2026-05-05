@@ -17,30 +17,30 @@ export class GroupListComponent implements OnInit {
   private readonly atmService   = inject(AtmService);
   private readonly router       = inject(Router);
 
-  // -- State ------------------------------------------------------------------
+  // ── State ─────────────────────────────────────────────────────────────────
   groups           = signal<Group[]>([]);
   selectedGroupId  = signal<number | null>(null);
   selectedGroupDtl = signal<GroupDetails | null>(null);
   isLoading        = signal(false);
   error            = signal<string | null>(null);
   searchQuery      = signal('');
-  
-  // -- Add client state -------------------------------------------------------
+
+  // ── Add-client state ───────────────────────────────────────────────────────
   allAtms           = signal<ClientAtm[]>([]);
   loadingAtms       = signal(false);
   selectedClientIds = signal<Set<number>>(new Set());
   isAddingBulk      = signal(false);
   clientSearch      = signal('');
 
-  // -- Computed ---------------------------------------------------------------
+  // ── Computed ───────────────────────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    return this.groups().filter(g => {
-      return !q ||
-        g.groupName?.toLowerCase().includes(q) ||
-        String(g.groupId).includes(q) ||
-        g.groupDescription?.toLowerCase().includes(q);
-    });
+    return this.groups().filter(g =>
+      !q ||
+      g.groupName?.toLowerCase().includes(q) ||
+      String(g.groupId).includes(q) ||
+      g.groupDescription?.toLowerCase().includes(q)
+    );
   });
 
   memberIds = computed(() =>
@@ -62,12 +62,10 @@ export class GroupListComponent implements OnInit {
 
   totalCount = computed(() => this.groups().length);
 
-  // -- Lifecycle --------------------------------------------------------------
-  ngOnInit(): void {
-    this.load();
-  }
+  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  ngOnInit(): void { this.load(); }
 
-  // -- Actions ----------------------------------------------------------------
+  // ── Load ───────────────────────────────────────────────────────────────────
   load(): void {
     this.isLoading.set(true);
     this.error.set(null);
@@ -75,6 +73,7 @@ export class GroupListComponent implements OnInit {
       next: data => {
         this.groups.set(data);
         this.isLoading.set(false);
+        // Sélectionne automatiquement le premier groupe
         if (data.length > 0 && !this.selectedGroupId()) {
           this.selectGroup(data[0].groupId);
         }
@@ -93,39 +92,27 @@ export class GroupListComponent implements OnInit {
     this.clientSearch.set('');
 
     this.groupService.getGroupDetails(groupId).subscribe({
-      next: data => {
-        this.selectedGroupDtl.set(data);
-      },
-      error: err => {
-        console.error('Erreur lors du chargement du groupe:', err);
-      }
+      next: data => this.selectedGroupDtl.set(data),
+      error: err => console.error('Erreur chargement groupe:', err)
     });
   }
 
+  // ── ATMs disponibles ───────────────────────────────────────────────────────
   loadAvailableAtms(): void {
-    if (this.allAtms().length === 0) {
-      this.loadingAtms.set(true);
-      this.atmService.getClients().subscribe({
-        next: data => {
-          this.allAtms.set(data);
-          this.loadingAtms.set(false);
-        },
-        error: () => {
-          this.loadingAtms.set(false);
-        }
-      });
-    }
+    if (this.allAtms().length > 0) return;
+    this.loadingAtms.set(true);
+    this.atmService.getClients().subscribe({
+      next: data => { this.allAtms.set(data); this.loadingAtms.set(false); },
+      error: () => this.loadingAtms.set(false)
+    });
   }
 
+  // ── Sélection multi ───────────────────────────────────────────────────────
   toggleSelection(clientId: number): void {
-    this.selectedClientIds.update(selected => {
-      const newSelected = new Set(selected);
-      if (newSelected.has(clientId)) {
-        newSelected.delete(clientId);
-      } else {
-        newSelected.add(clientId);
-      }
-      return newSelected;
+    this.selectedClientIds.update(s => {
+      const n = new Set(s);
+      n.has(clientId) ? n.delete(clientId) : n.add(clientId);
+      return n;
     });
   }
 
@@ -133,6 +120,7 @@ export class GroupListComponent implements OnInit {
     return this.selectedClientIds().has(clientId);
   }
 
+  // ── Ajouter plusieurs ATMs ─────────────────────────────────────────────────
   addSelectedClients(): void {
     const ids = Array.from(this.selectedClientIds());
     if (ids.length === 0 || !this.selectedGroupId()) return;
@@ -146,54 +134,57 @@ export class GroupListComponent implements OnInit {
         next: () => {
           const atm = this.allAtms().find(a => a.clientId === clientId);
           if (atm) {
-            this.selectedGroupDtl.update(gd => gd ? {
-              ...gd,
-              clients: [...(gd.clients ?? []), atm as any]
-            } : gd);
+            this.selectedGroupDtl.update(gd => gd
+              ? { ...gd, clients: [...(gd.clients ?? []), atm as any] }
+              : gd
+            );
           }
-          completed++;
-          if (completed === ids.length) {
+          if (++completed === ids.length) {
             this.isAddingBulk.set(false);
             this.selectedClientIds.set(new Set());
           }
         },
         error: err => {
           errors.push(`${clientId}: ${err?.error?.message ?? 'Erreur'}`);
-          completed++;
-          if (completed === ids.length) {
+          if (++completed === ids.length) {
             this.isAddingBulk.set(false);
-            if (errors.length > 0) {
-              alert(`Erreurs lors de l'ajout:\n${errors.join('\n')}`);
-            }
+            if (errors.length) alert(`Erreurs:\n${errors.join('\n')}`);
           }
         }
       });
     });
   }
 
+  // ── Retirer un ATM ────────────────────────────────────────────────────────
   removeClientFromGroup(clientId: number): void {
     if (!confirm('Retirer cet ATM du groupe ?')) return;
     if (!this.selectedGroupId()) return;
 
     this.groupService.removeClientFromGroup(this.selectedGroupId()!, clientId).subscribe({
       next: () => {
-        this.selectedGroupDtl.update(gd => gd ? {
-          ...gd,
-          clients: (gd.clients ?? []).filter(c => c.clientId !== clientId)
-        } : gd);
+        this.selectedGroupDtl.update(gd => gd
+          ? { ...gd, clients: (gd.clients ?? []).filter(c => c.clientId !== clientId) }
+          : gd
+        );
       },
       error: err => alert(err?.error?.message ?? 'Erreur lors du retrait')
     });
   }
 
+  // ── Navigation ─────────────────────────────────────────────────────────────
   goCreate(): void {
     this.router.navigate(['/admin/groups/create']);
   }
 
+  /**
+   * Navigue vers le formulaire d'ÉDITION d'un groupe existant.
+   * Route : /admin/groups/:id/edit → GroupFormComponent avec @Input group prérempli.
+   */
   goEdit(id: number): void {
     this.router.navigate(['/admin/groups', id, 'edit']);
   }
 
+  // ── Supprimer ──────────────────────────────────────────────────────────────
   confirmDelete(g: Group): void {
     if (!confirm(`Supprimer le groupe "${g.groupName}" (#${g.groupId}) ?`)) return;
     this.groupService.deleteGroup(g.groupId).subscribe({
@@ -202,15 +193,23 @@ export class GroupListComponent implements OnInit {
         if (this.selectedGroupId() === g.groupId) {
           this.selectedGroupId.set(null);
           this.selectedGroupDtl.set(null);
+          // Sélectionne le premier groupe restant
+          const remaining = this.groups();
+          if (remaining.length > 0) this.selectGroup(remaining[0].groupId);
         }
       },
       error: err => alert(err?.error?.message ?? 'Erreur lors de la suppression')
     });
   }
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   groupTypeLabel(typeId?: number): string {
-    const labels: Record<number, string> = { 1: 'Tous les ATMs', 2: 'Manuel', 3: 'Schedul�', 4: 'Dynamique' };
-    return typeId ? (labels[typeId] ?? `Type ${typeId}`) : '�';
+    const labels: Record<number, string> = {
+      1: 'Tous les ATMs',
+      2: 'Manuel',
+      3: 'Schedulé',
+      4: 'Dynamique'
+    };
+    return typeId ? (labels[typeId] ?? `Type ${typeId}`) : '—';
   }
 }
-

@@ -1,93 +1,151 @@
-<div class="form-panel">
+<div class="form-shell">
 
-  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
   <div class="form-head">
-    <div>
-      <h2 class="form-title">{{ isEdit ? 'Modifier le groupe' : 'Nouveau groupe' }}</h2>
-      <p class="form-subtitle">
-        {{ isEdit ? 'Mise à jour : ' + group?.groupName : 'Créer un nouveau groupe d\'ATMs' }}
-      </p>
+    <div class="form-head-left">
+      <div class="form-head-icon">{{ isEdit ? '✏️' : '🗂' }}</div>
+      <div>
+        <h2 class="form-title">{{ isEdit ? 'Modifier le groupe' : 'Nouveau groupe' }}</h2>
+        <p class="form-subtitle">
+          {{ isEdit ? 'Modification de : ' + (group?.groupName ?? '') : 'Créer un nouveau groupe d\'ATMs' }}
+        </p>
+      </div>
     </div>
-    <button class="close-btn" (click)="cancel()" title="Fermer">✕</button>
+    <button class="close-btn" (click)="cancel()" title="Retour">←</button>
   </div>
 
-  <!-- ── Alerts ──────────────────────────────────────────────────────────── -->
-  <div *ngIf="error()"      class="alert alert--error">⚠️ {{ error() }}</div>
-  <div *ngIf="successMsg()" class="alert alert--ok">✅ {{ successMsg() }}</div>
+  <!-- ── Alerts ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="error()"      class="alert alert--error">⚠ {{ error() }}</div>
+  <div *ngIf="successMsg()" class="alert alert--success">✓ {{ successMsg() }}</div>
 
-  <!-- ── Form ────────────────────────────────────────────────────────────── -->
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+  <!-- ── Form ───────────────────────────────────────────────────────────── -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
-    <!-- ═══ Section : Identification ════════════════════════════════════════ -->
-    <div class="form-section card">
-      <h3 class="section-title">Identification</h3>
-      <div class="fields-row">
+    <!-- ═══ Identification ═════════════════════════════════════════════ -->
+    <div class="card" style="margin-bottom:12px;">
+      <div class="form-section">
+        <h3 class="section-title">Identification</h3>
 
-        <div class="field field--full">
-          <label class="field-label" for="groupName">Nom du groupe <span class="req">*</span></label>
-          <input id="groupName" type="text" formControlName="groupName" placeholder="ex: Groupe Casablanca" />
-          <small *ngIf="f['groupName'].invalid && f['groupName'].touched" class="field-error">
-            Nom requis (min 2 caractères)
-          </small>
+        <div class="fields-row">
+
+          <div class="field field--full">
+            <label class="field-label" for="groupName">
+              Nom du groupe <span class="req">*</span>
+            </label>
+            <input
+              id="groupName"
+              type="text"
+              formControlName="groupName"
+              placeholder="ex : Groupe Casablanca Nord"
+            />
+            <small *ngIf="f['groupName'].invalid && f['groupName'].touched" class="field-error">
+              Nom requis (minimum 2 caractères)
+            </small>
+          </div>
+
+          <!-- Type via chips visuels -->
+          <div class="field field--full">
+            <label class="field-label">Type de groupe</label>
+            <div class="type-chips">
+              <button type="button"
+                class="type-chip"
+                [class.type-chip--active]="form.value.groupTypeId == 1"
+                (click)="form.patchValue({groupTypeId: 1})">
+                🌐 Tous les ATMs
+              </button>
+              <button type="button"
+                class="type-chip"
+                [class.type-chip--active]="form.value.groupTypeId == 2"
+                (click)="form.patchValue({groupTypeId: 2})">
+                ✋ Manuel
+              </button>
+              <button type="button"
+                class="type-chip"
+                [class.type-chip--active]="form.value.groupTypeId == 3"
+                (click)="form.patchValue({groupTypeId: 3})">
+                🗓 Schedulé
+              </button>
+              <button type="button"
+                class="type-chip"
+                [class.type-chip--active]="form.value.groupTypeId == 4"
+                (click)="form.patchValue({groupTypeId: 4})">
+                ⚡ Dynamique (requête)
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="evaluationInterval">
+              Intervalle d'évaluation (min)
+            </label>
+            <input
+              id="evaluationInterval"
+              type="number" min="0"
+              formControlName="evaluationInterval"
+              placeholder="0"
+            />
+          </div>
+
         </div>
 
-        <div class="field">
-          <label class="field-label" for="groupTypeId">Type de groupe</label>
-          <select id="groupTypeId" formControlName="groupTypeId">
-            <option [value]="1">Tous les ATMs</option>
-            <option [value]="2">Manuel</option>
-            <option [value]="3">Schedulé</option>
-            <option [value]="4">Dynamique (requête)</option>
-          </select>
+        <!-- Checkbox -->
+        <div class="checkboxes-row">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="includeMothballed" />
+            <span>Inclure les ATMs désactivés (mothballed)</span>
+          </label>
         </div>
-
-        <div class="field">
-          <label class="field-label" for="evaluationInterval">Intervalle d'évaluation (min)</label>
-          <input id="evaluationInterval" type="number" min="0" formControlName="evaluationInterval" placeholder="0" />
-        </div>
-
       </div>
+    </div>
 
-      <!-- Checkbox -->
-      <div class="checkboxes-row">
-        <label class="checkbox-label">
-          <input type="checkbox" formControlName="includeMothballed" />
-          <span>Inclure les ATMs désactivés (mothballed)</span>
-        </label>
+    <!-- ═══ Description ════════════════════════════════════════════════ -->
+    <div class="card" style="margin-bottom:12px;">
+      <div class="form-section">
+        <h3 class="section-title">Description</h3>
+        <textarea
+          id="groupDescription"
+          formControlName="groupDescription"
+          rows="3"
+          placeholder="Description du groupe (optionnel)…"
+        ></textarea>
       </div>
     </div>
 
-    <!-- ═══ Section : Description ════════════════════════════════════════════ -->
-    <div class="form-section card">
-      <h3 class="section-title">Description</h3>
-      <textarea
-        id="groupDescription"
-        formControlName="groupDescription"
-        rows="3"
-        placeholder="Description du groupe…"
-      ></textarea>
+    <!-- ═══ Requête dynamique (type 4 uniquement) ═══════════════════════ -->
+    <div class="card" *ngIf="form.value.groupTypeId == 4" style="margin-bottom:12px;">
+      <div class="form-section">
+        <h3 class="section-title">Requête dynamique</h3>
+        <p class="section-hint">
+          Requête SQL utilisée pour résoudre les membres du groupe (type Dynamique uniquement).
+        </p>
+        <textarea
+          id="groupQuery"
+          formControlName="groupQuery"
+          rows="5"
+          placeholder="SELECT client_id FROM clients WHERE …"
+          class="code-area"
+        ></textarea>
+      </div>
     </div>
 
-    <!-- ═══ Section : Requête dynamique ══════════════════════════════════════ -->
-    <div class="form-section card" *ngIf="form.value.groupTypeId == 4">
-      <h3 class="section-title">Requête dynamique</h3>
-      <p class="section-hint">Requête SQL utilisée pour résoudre les membres du groupe (type 4 uniquement).</p>
-      <textarea
-        id="groupQuery"
-        formControlName="groupQuery"
-        rows="4"
-        placeholder="SELECT client_id FROM ..."
-        class="code-area"
-      ></textarea>
-    </div>
-
-    <!-- ═══ Actions ═════════════════════════════════════════════════════════ -->
+    <!-- ═══ Actions ════════════════════════════════════════════════════ -->
     <div class="form-actions">
-      <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
+      <button type="button" class="btn btn-secondary" (click)="cancel()">
+        ← Annuler
+      </button>
       <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
-        {{ isSaving() ? 'Enregistrement…' : (isEdit ? 'Mettre à jour' : 'Créer le groupe') }}
+        @if (isSaving()) {
+          <span style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;"></span>
+          Enregistrement…
+        } @else {
+          {{ isEdit ? '✓ Mettre à jour' : '+ Créer le groupe' }}
+        }
       </button>
     </div>
 
   </form>
 </div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>

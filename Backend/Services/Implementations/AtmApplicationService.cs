@@ -51,6 +51,8 @@ namespace KtcWeb.Application.Services
         public Task<AtmActionsResponseDto> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to, int? days, string? addedByUser) =>
             _atmRepository.GetClientActionsAsync(clientId, from, to, days, addedByUser);
 
+        public Task<List<AtmUploadDto>> GetClientUploadsAsync(int clientId) => _atmRepository.GetClientUploadsAsync(clientId);
+
         public Task<List<AtmScheduleDto>> GetClientSchedulesAsync(int clientId) => _atmRepository.GetClientSchedulesAsync(clientId);
         public Task CreateScheduleAsync(CreateScheduleRequest request) => _atmRepository.CreateScheduleAsync(request);
 

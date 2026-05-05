@@ -1,6 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { LayoutService } from '../../../core/services/layout.service';
@@ -61,6 +61,8 @@ export class SidebarComponent implements OnInit {
   expandedBusinesses = signal<Set<number>>(new Set());
   expandedBranches   = signal<Set<number>>(new Set());
   loadingHierarchy   = signal(false);
+
+  private router = inject(Router);
 
   constructor(
     private http: HttpClient,
@@ -186,5 +188,9 @@ export class SidebarComponent implements OnInit {
 
   isBranchExpanded(id: number) {
     return this.expandedBranches().has(id);
+  }
+
+  goAtmStatus(clientId: number) {
+    this.router.navigate(['/admin/atms', clientId, 'status']);
   }
 }

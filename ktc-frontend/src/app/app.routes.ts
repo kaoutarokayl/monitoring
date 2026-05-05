@@ -26,6 +26,7 @@ import { AtmTicketsComponent } from './features/atm/components/atm-tickets.compo
 import { AtmActionsComponent } from './features/atm/components/atm-actions.component';
 import { AtmElectronicJournalComponent } from './features/atm/components/atm-electronic-journal.component';
 import { AtmSchedulesComponent } from './features/atm/components/atm-schedules.component';
+import { AtmUploadsComponent } from './features/atm/components/atm-uploads.component';
 import { AtmTransactionsComponent } from './features/atm/components/atm-transactions.component';
 import { AtmVideoJournalComponent } from './features/atm/components/atm-video-journal.component';
 import { AtmAvailabilityComponent } from './features/atm/components/atm-availability.component';
@@ -64,6 +65,7 @@ export const routes: Routes = [
               { path: 'software-info', component: AtmSoftwareInfoComponent },
               { path: 'certificates', component: AtmCertificatesComponent },
               { path: 'tickets', component: AtmTicketsComponent },
+              { path: 'uploads', component: AtmUploadsComponent },
               { path: 'actions', component: AtmActionsComponent },
               { path: 'schedules', component: AtmSchedulesComponent },
               { path: 'electronic-journal', component: AtmElectronicJournalComponent },

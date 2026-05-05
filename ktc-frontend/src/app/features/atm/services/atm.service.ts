@@ -1,5 +1,5 @@
 export * from '../models/atm.models';
-import { ClientAtm, BusinessDto, BusinessDetailsDto, BranchDto, RegionDto, RegionDetailsDto, HardwareTypeDto, CreateOrUpdateAtmRequest, CreateBranchRequest, CreateBusinessRequest, CreateRegionRequest, AtmComponentStatusDto, AtmAssetHistoryDto, RegionListDto, LastClientContactDto, AtmSoftwareInfoDto, AtmCertificateDto, AtmTicketDto, AppCounterDto, ReplenishmentDto, XfsCountersResponseDto, AtmActionsResponseDto, RemoteCommandTypeDto, DispatchRemoteActionsRequest, DispatchRemoteActionsResponse, ElectronicJournalEntryDto, LookupItemDto, TransactionAuditDto, TransactionSearchCriteria, VideoJournalEventDto, AtmAvailabilityReportDto, AtmCashCassetteOverviewDto, CashFlowReportDto, CashUnitHistoryRowDto, CassetteSummaryDto, AtmScheduleDto, CreateScheduleRequest } from '../models/atm.models';
+import { ClientAtm, BusinessDto, BusinessDetailsDto, BranchDto, RegionDto, RegionDetailsDto, HardwareTypeDto, CreateOrUpdateAtmRequest, CreateBranchRequest, CreateBusinessRequest, CreateRegionRequest, AtmComponentStatusDto, AtmAssetHistoryDto, RegionListDto, LastClientContactDto, AtmSoftwareInfoDto, AtmCertificateDto, AtmTicketDto, AppCounterDto, ReplenishmentDto, XfsCountersResponseDto, AtmActionsResponseDto, AtmUploadDto, RemoteCommandTypeDto, DispatchRemoteActionsRequest, DispatchRemoteActionsResponse, ElectronicJournalEntryDto, LookupItemDto, TransactionAuditDto, TransactionSearchCriteria, VideoJournalEventDto, AtmAvailabilityReportDto, AtmCashCassetteOverviewDto, CashFlowReportDto, CashUnitHistoryRowDto, CassetteSummaryDto, AtmScheduleDto, CreateScheduleRequest } from '../models/atm.models';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -69,6 +69,10 @@ export class AtmService {
 
   getClientSchedules(clientId: number): Observable<AtmScheduleDto[]> {
     return this.http.get<AtmScheduleDto[]>(`${this.BASE}/clients/${clientId}/schedules`);
+  }
+
+  getClientUploads(clientId: number): Observable<AtmUploadDto[]> {
+    return this.http.get<AtmUploadDto[]>(`${this.BASE}/clients/${clientId}/uploads`);
   }
 
   createSchedule(body: CreateScheduleRequest): Observable<{ message: string }> {

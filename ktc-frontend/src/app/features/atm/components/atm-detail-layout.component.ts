@@ -26,13 +26,15 @@ export class AtmDetailLayoutComponent implements OnInit, OnDestroy {
     // Minimiser la sidebar automatiquement quand on entre dans les détails ATM
     this.layoutService.setSidebarCollapsed(true);
 
-    const idParam = this.route.snapshot.paramMap.get('id');
-    if (idParam) {
-      this.atmId.set(Number(idParam));
-      this.loadAtm();
-    } else {
-      this.router.navigate(['/admin/atms']);
-    }
+    this.route.paramMap.subscribe(params => {
+      const idParam = params.get('id');
+      if (idParam) {
+        this.atmId.set(Number(idParam));
+        this.loadAtm();
+      } else {
+        this.router.navigate(['/admin/atms']);
+      }
+    });
   }
 
   ngOnDestroy(): void {

@@ -437,6 +437,20 @@ public async Task<IActionResult> UpdateBranch(short id, [FromBody] UpdateBranchR
             }
         }
 
+        [HttpGet("clients/{id}/uploads")]
+        public async Task<ActionResult<List<AtmUploadDto>>> GetClientUploads(int id)
+        {
+            try
+            {
+                var uploads = await _service.GetClientUploadsAsync(id);
+                return Ok(uploads);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("schedules")]
         public async Task<IActionResult> CreateSchedule([FromBody] CreateScheduleRequest request)
         {

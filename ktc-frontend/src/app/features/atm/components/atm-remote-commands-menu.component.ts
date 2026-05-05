@@ -13,8 +13,15 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AtmService, ClientAtm } from '../services/atm.service';
-import { RemoteCommandTypeDto } from '../models/atm.models';
-import { formatCommandDisplayLabel, partitionToolbarCommands } from '../remote-toolbar-commands';
+import {
+  RemoteCommandTypeDto,
+  UploadTraceParams,
+  UploadTraceBackupParams,
+  UploadEventLogParams,
+  UploadRegistryParams,
+  UploadCommandParams
+} from '../models/atm.models';
+import { formatCommandDisplayLabel, normalizeCommandNameForMatch, partitionToolbarCommands } from '../remote-toolbar-commands';
 
 @Component({
   selector: 'app-atm-remote-commands-menu',
@@ -53,7 +60,21 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
   readonly dispatching = signal(false);
   readonly dispatchError = signal<string | null>(null);
 
+  // Paramètres d'upload spécifiques
+  readonly traceParams = signal<UploadTraceParams>({ traceType: 'Active Trace', timeFilterType: 'last30min' });
+  readonly traceBackupParams = signal<UploadTraceBackupParams>({});
+  readonly eventLogParams = signal<UploadEventLogParams>({ logType: 'Application' });
+  readonly registryParams = signal<UploadRegistryParams>({});
+
   readonly modalOpen = computed(() => this.activeCommand() != null);
+  readonly isUploadCommand = computed(() => {
+    const cmd = this.activeCommand();
+    return cmd ? this.getUploadType(cmd.commandName) !== null : false;
+  });
+  readonly uploadType = computed(() => {
+    const cmd = this.activeCommand();
+    return cmd ? this.getUploadType(cmd.commandName) : null;
+  });
 
   ngOnInit(): void {
     this.navSub = this.router.events
@@ -79,6 +100,19 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     const m = path.match(/\/admin\/atms\/(\d+)(?:\/|$)/);
     if (!m) return [];
     return [Number(m[1])];
+  }
+
+  /** Détecte le type d'upload : 'trace' | 'traceBackup' | 'eventLog' | 'registry' | null */
+  private getUploadType(commandName: string | undefined): string | null {
+    if (!commandName) return null;
+    const n = normalizeCommandNameForMatch(commandName);
+    
+    if (n.includes('trace backup')) return 'traceBackup';
+    if (n.includes('upload trace') || n.includes('kalignite trace')) return 'trace';
+    if (n.includes('event log')) return 'eventLog';
+    if (n.includes('registry')) return 'registry';
+    
+    return null;
   }
 
   @HostListener('document:click')
@@ -117,6 +151,7 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     this.activeCommand.set(cmd);
     this.clientsLoading.set(true);
     this.modalClients.set([]);
+    this.resetUploadParams();
 
     const pre = this.preselectedFromUrl(this.router.url);
 
@@ -142,6 +177,14 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     this.dispatchError.set(null);
     this.modalClients.set([]);
     this.uploadSubmenuOpen.set(false);
+    this.resetUploadParams();
+  }
+
+  private resetUploadParams(): void {
+    this.traceParams.set({ traceType: 'Active Trace', timeFilterType: 'last30min' });
+    this.traceBackupParams.set({});
+    this.eventLogParams.set({ logType: 'Application' });
+    this.registryParams.set({});
   }
 
   private syncCheckAll(): void {
@@ -172,6 +215,30 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     this.setCheckAll((ev.target as HTMLInputElement).checked);
   }
 
+  private buildUploadParams(): UploadCommandParams | undefined {
+    const type = this.uploadType();
+    if (!type) return undefined;
+
+    const params: UploadCommandParams = {};
+    
+    switch (type) {
+      case 'trace':
+        params.trace = this.traceParams();
+        break;
+      case 'traceBackup':
+        params.traceBackup = this.traceBackupParams();
+        break;
+      case 'eventLog':
+        params.eventLog = this.eventLogParams();
+        break;
+      case 'registry':
+        params.registry = this.registryParams();
+        break;
+    }
+    
+    return Object.keys(params).length > 0 ? params : undefined;
+  }
+
   confirmDispatch(): void {
     const cmd = this.activeCommand();
     if (!cmd) return;
@@ -190,7 +257,8 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
       .dispatchRemoteCommand({
         commandId: cmd.commandId,
         clientIds: ids,
-        initiatedBy: initiated || undefined
+        initiatedBy: initiated || undefined,
+        uploadParams: this.buildUploadParams()
       })
       .subscribe({
         next: (res) => {

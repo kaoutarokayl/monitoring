@@ -18,9 +18,6 @@
           <h1 class="page-title">{{ atmData.clientName }}</h1>
           <p class="page-subtitle">ID: #{{ atmData.clientId }} | IP: {{ atmData.networkAddress }}</p>
         </div>
-        <div class="detail-actions">
-          <a routerLink="./schedules" class="btn btn--secondary btn--sm">Schedules</a>
-        </div>
         <span class="badge" [class.badge--ok]="atmData.active" [class.badge--down]="!atmData.active">
           {{ atmData.active ? 'Actif' : 'Inactif' }}
         </span>
@@ -30,19 +27,20 @@
     <!-- Horizontal Menu -->
     <div class="horizontal-menu-card card">
       <nav class="detail-nav">
-        <a routerLink="./general" routerLinkActive="active" class="nav-item">Général</a>
-        <a routerLink="./status" routerLinkActive="active" class="nav-item">Statut des composants</a>
-        <a routerLink="./cash-cassettes" routerLinkActive="active" class="nav-item">Cash / Cassettes / Historique</a>
-        <a routerLink="./asset-history" routerLinkActive="active" class="nav-item">Asset History</a>
-        <a routerLink="./tickets" routerLinkActive="active" class="nav-item">Tickets</a>
-        <a routerLink="./software-info" routerLinkActive="active" class="nav-item">Software Info</a>
-        <a routerLink="./certificates" routerLinkActive="active" class="nav-item">Certificates</a>
-        <a routerLink="./actions" routerLinkActive="active" class="nav-item">Actions</a>
-        <a routerLink="./schedules" routerLinkActive="active" class="nav-item">Schedules</a>
-        <a routerLink="./electronic-journal" routerLinkActive="active" class="nav-item">Electronic Journal</a>
-        <a routerLink="./transactions" routerLinkActive="active" class="nav-item">Session/Transaction Data</a>
-        <a routerLink="./videojournal" routerLinkActive="active" class="nav-item">VideoJournal</a>
-        <a routerLink="./availability" routerLinkActive="active" class="nav-item">Availability</a>
+        <a routerLink="./general" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Général</a>
+        <a routerLink="./status" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Statut des composants</a>
+        <a routerLink="./cash-cassettes" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Cash / Cassettes / Historique</a>
+        <a routerLink="./asset-history" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Asset History</a>
+        <a routerLink="./tickets" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Tickets</a>
+        <a routerLink="./software-info" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Software Info</a>
+        <a routerLink="./certificates" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Certificates</a>
+        <a routerLink="./actions" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Actions</a>
+        <a routerLink="./schedules" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Schedules</a>
+        <a routerLink="./uploads" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Uploads</a>
+        <a routerLink="./electronic-journal" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Electronic Journal</a>
+        <a routerLink="./transactions" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Session/Transaction Data</a>
+        <a routerLink="./videojournal" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">VideoJournal</a>
+        <a routerLink="./availability" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">Availability</a>
       </nav>
     </div>
 

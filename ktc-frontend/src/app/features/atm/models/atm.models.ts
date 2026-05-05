@@ -292,6 +292,19 @@ export interface AtmActionsResponseDto {
   addedByUsers: string[];
 }
 
+export interface AtmUploadDto {
+  actionId: number;
+  fileLocation: string;
+  fileName?: string;
+  fileType: number;
+  fileTypeLabel?: string;
+  commandName?: string;
+  scheduleName?: string;
+  status?: string;
+  addedTime?: string | null;
+  comments?: string | null;
+}
+
 /** Ligne dbo.CommandTypes — libellés dynamiques (Refresh, Reboot, … selon la base). */
 export interface RemoteCommandTypeDto {
   commandId: number;
@@ -299,10 +312,43 @@ export interface RemoteCommandTypeDto {
   description: string;
 }
 
+/** Paramètres spécifiques pour Upload Trace */
+export interface UploadTraceParams {
+  traceType?: string;  // ex: 'Active Trace'
+  timeFilterType?: 'last30min' | 'last1hour' | 'custom';
+  customFilterValue?: string;
+}
+
+/** Paramètres spécifiques pour Upload Trace Backup */
+export interface UploadTraceBackupParams {
+  startDate?: string;  // ISO format
+  endDate?: string;    // ISO format
+}
+
+/** Paramètres spécifiques pour Upload Event Log */
+export interface UploadEventLogParams {
+  logType?: 'Application' | 'System' | 'Other' | 'CustomFilter';
+  customFilter?: string;
+}
+
+/** Paramètres spécifiques pour Upload Registry */
+export interface UploadRegistryParams {
+  registryKeyName?: string;
+}
+
+/** Paramètres d'upload — chaque type peut être null si pas de paramètres */
+export interface UploadCommandParams {
+  trace?: UploadTraceParams;
+  traceBackup?: UploadTraceBackupParams;
+  eventLog?: UploadEventLogParams;
+  registry?: UploadRegistryParams;
+}
+
 export interface DispatchRemoteActionsRequest {
   commandId: number;
   clientIds: number[];
   initiatedBy?: string;
+  uploadParams?: UploadCommandParams;
 }
 
 export interface DispatchRemoteActionsResponse {

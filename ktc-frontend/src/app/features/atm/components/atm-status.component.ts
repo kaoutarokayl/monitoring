@@ -176,33 +176,37 @@ export class AtmStatusComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Try to get from Input, then current route, then parent route
-    let idStr = this.route.snapshot.paramMap.get('id');
-    if (!idStr && this.route.parent) {
-      idStr = this.route.parent.snapshot.paramMap.get('id');
-    }
+    const routeToWatch = this.route.parent?.paramMap ?? this.route.paramMap;
 
-    const finalId = this.clientId ?? (idStr ? Number(idStr) : null);
-    this.resolvedClientId.set(finalId);
+    routeToWatch.subscribe(params => {
+      let idStr = this.route.snapshot.paramMap.get('id');
+      if (!idStr && this.route.parent) {
+        idStr = this.route.parent.snapshot.paramMap.get('id');
+      }
 
-    if (finalId) {
-      this.loadStatus(finalId);
-      this.route.queryParamMap.subscribe(params => {
-        const requested = (params.get('component') || '').trim().toLowerCase();
-        if (!requested) return;
-        const match = this.uniqueComponents().find(c =>
-          c.name.toLowerCase() === requested ||
-          c.displayName.toLowerCase() === requested ||
-          c.displayName.toLowerCase().includes(requested)
-        );
-        if (match) {
-          this.selectComponent(match.name);
-        }
-      });
-    } else {
-      this.error.set("Aucun identifiant d'ATM fourni.");
-      this.isLoading.set(false);
-    }
+      const finalId = this.clientId ?? (idStr ? Number(idStr) : null);
+      this.resolvedClientId.set(finalId);
+
+      if (finalId) {
+        this.loadStatus(finalId);
+      } else {
+        this.error.set("Aucun identifiant d'ATM fourni.");
+        this.isLoading.set(false);
+      }
+    });
+
+    this.route.queryParamMap.subscribe(params => {
+      const requested = (params.get('component') || '').trim().toLowerCase();
+      if (!requested) return;
+      const match = this.uniqueComponents().find(c =>
+        c.name.toLowerCase() === requested ||
+        c.displayName.toLowerCase() === requested ||
+        c.displayName.toLowerCase().includes(requested)
+      );
+      if (match) {
+        this.selectComponent(match.name);
+      }
+    });
   }
 
   loadStatus(id: number): void {

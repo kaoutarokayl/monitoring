@@ -366,6 +366,51 @@ namespace KtcWeb.Infrastructure.Repositories
             };
         }
 
+        public async Task<List<AtmUploadDto>> GetClientUploadsAsync(int clientId)
+        {
+            var uploads = await _context.Database.SqlQueryRaw<AtmUploadDto>(@"
+                SELECT
+                    u.action_id    AS ActionId,
+                    u.filelocation AS FileLocation,
+                    -- Extract filename from the stored path
+                    REVERSE(SUBSTRING(REVERSE(u.filelocation), 1, CHARINDEX('\\', REVERSE(u.filelocation) + '\\') - 1)) AS FileName,
+                    u.filetype     AS FileType,
+                    CASE u.filetype
+                        WHEN 0 THEN 'Other'
+                        WHEN 1 THEN 'Kalignite Trace'
+                        WHEN 2 THEN 'Copy of Electronic Journal'
+                        WHEN 3 THEN 'Windows event log'
+                        WHEN 4 THEN 'Registry export'
+                        WHEN 5 THEN 'Screenshot / Image'
+                        WHEN 6 THEN 'Trace Backup cab'
+                        ELSE 'Unknown'
+                    END AS FileTypeLabel,
+                    ct.commandname AS CommandName,
+                    s.schedulename AS ScheduleName,
+                    CASE a.status_id
+                        WHEN 1 THEN 'Pending'
+                        WHEN 2 THEN 'InProgress'
+                        WHEN 3 THEN 'Complete'
+                        WHEN 4 THEN 'Error'
+                        WHEN 5 THEN 'Timeout'
+                        WHEN 6 THEN 'Cancelled'
+                        WHEN 7 THEN 'Immediate'
+                        WHEN 8 THEN 'Scheduled'
+                        ELSE 'Unknown'
+                    END AS Status,
+                    CONVERT(nvarchar(30), a.addedtime, 120) AS AddedTime,
+                    CONVERT(nvarchar(max), a.comments) AS Comments
+                FROM dbo.Uploads u
+                INNER JOIN dbo.Actions a ON a.action_id = u.action_id
+                LEFT JOIN dbo.CommandTypes ct ON ct.command_id = a.command_id
+                LEFT JOIN dbo.Schedules s ON s.schedule_id = a.schedule_id
+                WHERE u.client_id = {0}
+                ORDER BY a.addedtime DESC, u.action_id DESC",
+                clientId).ToListAsync();
+
+            return uploads;
+        }
+
         // Exact types from dbo.Schedules DDL:
         //   schedule_id          int        -> int
         //   group_id             int        -> int   (NOT smallint!)

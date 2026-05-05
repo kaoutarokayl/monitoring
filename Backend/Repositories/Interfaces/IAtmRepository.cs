@@ -17,6 +17,7 @@ namespace KtcWeb.Domain.Interfaces
         Task<List<ReplenishmentDto>> GetReplenishmentsAsync(int clientId, short componentId);
         Task<XfsCountersResponseDto> GetXfsCountersAsync(int clientId, short componentId);
         Task<AtmActionsResponseDto> GetClientActionsAsync(int clientId, DateTime? from, DateTime? to, int? days, string? addedByUser);
+        Task<List<AtmUploadDto>> GetClientUploadsAsync(int clientId);
         Task<List<AtmScheduleDto>> GetClientSchedulesAsync(int clientId);
         Task CreateScheduleAsync(CreateScheduleRequest request);
         Task<List<RemoteCommandTypeDto>> GetRemoteCommandTypesAsync();
