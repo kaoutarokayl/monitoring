@@ -933,20 +933,30 @@ namespace KtcWeb.Infrastructure.Repositories
             // Use hourly aggregates from OverallAvailability_P (already seconds by state).
             // Also compute Top 5 unavailable reasons + Top 5 error codes.
 
-            var totals = await _context.Database.SqlQueryRaw<AvailabilityTotalsRaw>(@"
+            // Check which OverallAvailability table exists
+            var hasP = await TableExistsAsync("OverallAvailability_P");
+            var hasS = await TableExistsAsync("OverallAvailability_S");
+            var availTable = hasP ? "OverallAvailability_P" : (hasS ? "OverallAvailability_S" : "OverallAvailability_P");
+
+            // Check for timestmp column variants
+            var hasTimestmp = await ColumnExistsAsync(availTable, "timestmp");
+            var hasTimestmpLocal = await ColumnExistsAsync(availTable, "timestmp_local");
+            var timestmpCol = hasTimestmp ? "timestmp" : (hasTimestmpLocal ? "timestmp_local" : "timestmp");
+
+            var totals = await _context.Database.SqlQueryRaw<AvailabilityTotalsRaw>($@"
                 SELECT
-                    SUM(CAST(sec_is  AS int)) AS SecIs,
-                    SUM(CAST(sec_oos AS int)) AS SecOos,
-                    SUM(CAST(sec_ls  AS int)) AS SecLs,
-                    SUM(CAST(sec_rs  AS int)) AS SecRs,
-                    SUM(CAST(sec_sus AS int)) AS SecSus,
-                    SUM(CAST(sec_fb  AS int)) AS SecFb,
-                    SUM(CAST(sec_anr AS int)) AS SecAnr,
-                    SUM(CAST(sec_knr AS int)) AS SecKnr
-                FROM dbo.OverallAvailability_P
-                WHERE client_id = {0}
-                  AND timestmp >= {1}
-                  AND timestmp <= {2}", clientId, from, to).FirstOrDefaultAsync();
+                    COALESCE(SUM(CAST(sec_is  AS int)), 0) AS SecIs,
+                    COALESCE(SUM(CAST(sec_oos AS int)), 0) AS SecOos,
+                    COALESCE(SUM(CAST(sec_ls  AS int)), 0) AS SecLs,
+                    COALESCE(SUM(CAST(sec_rs  AS int)), 0) AS SecRs,
+                    COALESCE(SUM(CAST(sec_sus AS int)), 0) AS SecSus,
+                    COALESCE(SUM(CAST(sec_fb  AS int)), 0) AS SecFb,
+                    COALESCE(SUM(CAST(sec_anr AS int)), 0) AS SecAnr,
+                    COALESCE(SUM(CAST(sec_knr AS int)), 0) AS SecKnr
+                FROM dbo.{availTable}
+                WHERE client_id = {{0}}
+                  AND {timestmpCol} >= {{1}}
+                  AND {timestmpCol} <= {{2}}", clientId, from, to).FirstOrDefaultAsync();
 
             totals ??= new AvailabilityTotalsRaw();
 
@@ -983,21 +993,17 @@ namespace KtcWeb.Infrastructure.Repositories
                 .OrderByDescending(x => x.Seconds)
                 .ToList();
 
-            var topUnavailableReasons = await _context.Database.SqlQueryRaw<UnavailableReasonRaw>(@"
+            var topUnavailableReasons = await _context.Database.SqlQueryRaw<UnavailableReasonRaw>($@"
                 SELECT TOP (5)
                     our.una_reason_id AS ReasonId,
                     ISNULL(ur.una_reason_message, 'Unknown') AS Reason,
                     SUM(CAST(our.sec_duration AS int)) AS Seconds
                 FROM dbo.OverallUnavailableReasons_P our
                 LEFT JOIN dbo.UnavailableReasons ur ON ur.una_reason_id = our.una_reason_id
-                WHERE our.timestmp >= {0}
-                  AND our.timestmp <= {1}
-                  AND EXISTS (
-                      SELECT 1
-                      FROM dbo.OverallAvailability_P oa
-                      WHERE oa.overall_avail_id = our.overall_avail_id
-                        AND oa.client_id = {2}
-                  )
+                INNER JOIN dbo.{availTable} oa ON oa.overall_avail_id = our.overall_avail_id
+                WHERE oa.client_id = {{2}}
+                  AND oa.{timestmpCol} >= {{0}}
+                  AND oa.{timestmpCol} <= {{1}}
                 GROUP BY our.una_reason_id, ur.una_reason_message
                 ORDER BY SUM(CAST(our.sec_duration AS int)) DESC", from, to, clientId).ToListAsync();
 
@@ -1013,19 +1019,33 @@ namespace KtcWeb.Infrastructure.Repositories
                 .ToList();
 
             // Error codes: clamp opened/closed to [from,to] and sum seconds impact.
-            var topErrorCodes = await _context.Database.SqlQueryRaw<ErrorCodeRaw>(@"
+            // Detect which error codes table exists
+            var errorTables = new[] { "HistoricalErrorCodes_P_8129", "HistoricalErrorCodes_NU_P", "HistoricalErrorCodes_P" };
+            var errorTable = "";
+            foreach (var et in errorTables)
+            {
+                if (await TableExistsAsync(et))
+                {
+                    errorTable = et;
+                    break;
+                }
+            }
+
+            var topErrorCodes = string.IsNullOrEmpty(errorTable)
+                ? new List<ErrorCodeRaw>()
+                : await _context.Database.SqlQueryRaw<ErrorCodeRaw>($@"
                 WITH R AS (
                     SELECT
                         he.errorcodetype_id AS ErrorCodeTypeId,
-                        CASE WHEN he.timestamp_opened < {0} THEN {0} ELSE he.timestamp_opened END AS StartTs,
+                        CASE WHEN he.timestamp_opened < {{0}} THEN {{0}} ELSE he.timestamp_opened END AS StartTs,
                         CASE
-                            WHEN he.timestamp_closed IS NULL OR he.timestamp_closed > {1} THEN {1}
+                            WHEN he.timestamp_closed IS NULL OR he.timestamp_closed > {{1}} THEN {{1}}
                             ELSE he.timestamp_closed
                         END AS EndTs
-                    FROM dbo.HistoricalErrorCodes_P_8129 he
-                    WHERE he.client_id = {2}
-                      AND he.timestamp_opened < {1}
-                      AND (he.timestamp_closed IS NULL OR he.timestamp_closed > {0})
+                    FROM dbo.{errorTable} he
+                    WHERE he.client_id = {{2}}
+                      AND he.timestamp_opened < {{1}}
+                      AND (he.timestamp_closed IS NULL OR he.timestamp_closed > {{0}})
                 )
                 SELECT TOP (5)
                     r.ErrorCodeTypeId,
