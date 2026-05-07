@@ -457,3 +457,42 @@ select.control { cursor: pointer; }
   color: #bbb;
   line-height: 26px;
 }
+
+:host-context(.theme-dark) .panel,
+:host-context(.theme-dark) .panel-header,
+:host-context(.theme-dark) .filters,
+:host-context(.theme-dark) .control,
+:host-context(.theme-dark) .step-btn,
+:host-context(.theme-dark) .btn,
+:host-context(.theme-dark) .search-bar,
+:host-context(.theme-dark) .search-input,
+:host-context(.theme-dark) .search-clear,
+:host-context(.theme-dark) .stats-bar,
+:host-context(.theme-dark) .state,
+:host-context(.theme-dark) .table,
+:host-context(.theme-dark) .table th,
+:host-context(.theme-dark) .table td,
+:host-context(.theme-dark) .tr--clickable:hover,
+:host-context(.theme-dark) .tr--expanded,
+:host-context(.theme-dark) .tr--detail td,
+:host-context(.theme-dark) .pagination,
+:host-context(.theme-dark) .page-btn,
+:host-context(.theme-dark) .page-btn--active,
+:host-context(.theme-dark) .search-clear,
+:host-context(.theme-dark) .badge {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+:host-context(.theme-dark) .panel-intro,
+:host-context(.theme-dark) .last-refresh,
+:host-context(.theme-dark) .field label,
+:host-context(.theme-dark) .stat__lbl,
+:host-context(.theme-dark) .th-sortable:hover,
+:host-context(.theme-dark) .page-info,
+:host-context(.theme-dark) .page-btn:hover:not(:disabled),
+:host-context(.theme-dark) .btn:hover,
+:host-context(.theme-dark) .step-btn:hover {
+  color: var(--text-secondary) !important;
+}

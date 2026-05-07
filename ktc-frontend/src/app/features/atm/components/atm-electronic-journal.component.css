@@ -89,3 +89,43 @@
   font-family: Consolas, "Courier New", monospace;
 }
 
+:host-context(.theme-dark) .panel,
+:host-context(.theme-dark) .filters,
+:host-context(.theme-dark) .field input,
+:host-context(.theme-dark) .btn,
+:host-context(.theme-dark) .table,
+:host-context(.theme-dark) .table th,
+:host-context(.theme-dark) .table td,
+:host-context(.theme-dark) .table tbody tr:nth-child(even) {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+:host-context(.theme-dark) .filters {
+  background: var(--surface-2) !important;
+}
+
+:host-context(.theme-dark) .field label {
+  color: var(--text-secondary) !important;
+}
+
+:host-context(.theme-dark) .field input {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+:host-context(.theme-dark) .btn:hover,
+:host-context(.theme-dark) .table th {
+  background: var(--surface-2) !important;
+}
+
+:host-context(.theme-dark) .btn:hover {
+  color: var(--text) !important;
+}
+
+:host-context(.theme-dark) .state,
+:host-context(.theme-dark) .state--error {
+  color: var(--muted) !important;
+}
+

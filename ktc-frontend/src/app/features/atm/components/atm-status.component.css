@@ -218,3 +218,34 @@
 .status-gray {
   background-color: #6c757d;
 }
+
+:host-context(.theme-dark) .atm-status-container,
+:host-context(.theme-dark) .master-panel,
+:host-context(.theme-dark) .panel-title,
+:host-context(.theme-dark) .component-item,
+:host-context(.theme-dark) .component-item.active,
+:host-context(.theme-dark) .detail-panel,
+:host-context(.theme-dark) .subtab-nav,
+:host-context(.theme-dark) .subtab-button,
+:host-context(.theme-dark) .subtab-button.active,
+:host-context(.theme-dark) .table-container,
+:host-context(.theme-dark) .detail-table,
+:host-context(.theme-dark) .detail-table th,
+:host-context(.theme-dark) .detail-table td,
+:host-context(.theme-dark) .detail-table tbody tr:nth-child(even) td,
+:host-context(.theme-dark) .empty-selection,
+:host-context(.theme-dark) .state,
+:host-context(.theme-dark) .pagination,
+:host-context(.theme-dark) .page-btn,
+:host-context(.theme-dark) .search-clear {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+:host-context(.theme-dark) .subtab-nav,
+:host-context(.theme-dark) .subtab-button:hover,
+:host-context(.theme-dark) .component-item:hover,
+:host-context(.theme-dark) .page-btn:hover:not(:disabled) {
+  background: var(--hover-bg) !important;
+}

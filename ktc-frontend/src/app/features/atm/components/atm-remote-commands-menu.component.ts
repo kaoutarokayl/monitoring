@@ -19,6 +19,7 @@ import {
   UploadTraceBackupParams,
   UploadEventLogParams,
   UploadRegistryParams,
+  UploadFileParams,
   UploadCommandParams
 } from '../models/atm.models';
 import { formatCommandDisplayLabel, normalizeCommandNameForMatch, partitionToolbarCommands } from '../remote-toolbar-commands';
@@ -65,6 +66,7 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
   readonly traceBackupParams = signal<UploadTraceBackupParams>({});
   readonly eventLogParams = signal<UploadEventLogParams>({ logType: 'Application' });
   readonly registryParams = signal<UploadRegistryParams>({});
+  readonly fileParams = signal<{ file: File | null }>({ file: null });
 
   readonly modalOpen = computed(() => this.activeCommand() != null);
   readonly isUploadCommand = computed(() => {
@@ -102,11 +104,12 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     return [Number(m[1])];
   }
 
-  /** Détecte le type d'upload : 'trace' | 'traceBackup' | 'eventLog' | 'registry' | null */
+  /** Détecte le type d'upload : 'file' | 'trace' | 'traceBackup' | 'eventLog' | 'registry' | null */
   private getUploadType(commandName: string | undefined): string | null {
     if (!commandName) return null;
     const n = normalizeCommandNameForMatch(commandName);
     
+    if (n.includes('upload file')) return 'file';
     if (n.includes('trace backup')) return 'traceBackup';
     if (n.includes('upload trace') || n.includes('kalignite trace')) return 'trace';
     if (n.includes('event log')) return 'eventLog';
@@ -185,6 +188,7 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     this.traceBackupParams.set({});
     this.eventLogParams.set({ logType: 'Application' });
     this.registryParams.set({});
+    this.fileParams.set({ file: null });
   }
 
   private syncCheckAll(): void {
@@ -222,6 +226,13 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     const params: UploadCommandParams = {};
     
     switch (type) {
+      case 'file': {
+        const file = this.fileParams().file;
+        if (file) {
+          params.file = { fileName: file.name, fileSize: file.size };
+        }
+        break;
+      }
       case 'trace':
         params.trace = this.traceParams();
         break;
@@ -239,6 +250,12 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     return Object.keys(params).length > 0 ? params : undefined;
   }
 
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.fileParams.set({ file });
+  }
+
   confirmDispatch(): void {
     const cmd = this.activeCommand();
     if (!cmd) return;
@@ -246,6 +263,12 @@ export class AtmRemoteCommandsMenuComponent implements OnInit, OnDestroy {
     const ids = this.selectedIds();
     if (ids.length === 0) {
       this.dispatchError.set('Cochez au moins un ATM.');
+      return;
+    }
+
+    // Validation pour upload file
+    if (this.uploadType() === 'file' && !this.fileParams().file) {
+      this.dispatchError.set('Veuillez sélectionner un fichier à uploader.');
       return;
     }
 

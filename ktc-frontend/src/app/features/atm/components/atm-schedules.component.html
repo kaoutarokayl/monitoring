@@ -9,9 +9,17 @@
         <p class="page-subtitle">Depuis <span class="mono">dbo.Schedules</span> pour cet ATM</p>
       </div>
     </div>
-    <button class="btn btn--primary" type="button" (click)="toggleCreatePane()">
-      @if (createPaneOpen()) { ✕ Fermer } @else { + Nouveau schedule }
-    </button>
+    <div class="header-actions">
+      <!-- View toggle -->
+      <div class="view-tabs">
+        <button class="view-tab" [class.active]="ganttView() === 'month'"   (click)="setGanttView('month')">Mois</button>
+        <button class="view-tab" [class.active]="ganttView() === 'quarter'" (click)="setGanttView('quarter')">Trimestre</button>
+        <button class="view-tab" [class.active]="ganttView() === 'year'"    (click)="setGanttView('year')">Année</button>
+      </div>
+      <button class="btn btn--primary" type="button" (click)="toggleCreatePane()">
+        @if (createPaneOpen()) { ✕ Fermer } @else { + Nouveau schedule }
+      </button>
+    </div>
   </div>
 
   <!-- ===== BUILDER ===== -->
@@ -21,20 +29,14 @@
 
       <div class="schedule-builder__grid">
 
-        <!-- Nom -->
         <div class="field">
           <label for="scheduleName">Nom du schedule</label>
-          <input
-            id="scheduleName"
-            class="control"
-            type="text"
+          <input id="scheduleName" class="control" type="text"
             placeholder="Ex. Reboot hebdomadaire"
             [value]="scheduleName()"
-            (input)="onScheduleNameInput($event)"
-          />
+            (input)="onScheduleNameInput($event)" />
         </div>
 
-        <!-- Groupe -->
         <div class="field">
           <label for="groupId">Groupe ATM</label>
           <select id="groupId" class="control" [value]="selectedGroupId()" (change)="onGroupChange($event)">
@@ -45,7 +47,6 @@
           </select>
         </div>
 
-        <!-- Commande -->
         <div class="field">
           <label for="commandId">Commande</label>
           <select id="commandId" class="control" [value]="selectedCommandId()" (change)="onCommandChange($event)">
@@ -56,58 +57,41 @@
           </select>
         </div>
 
-        <!-- Fréquence — chips -->
         <div class="field field--full">
           <label>Fréquence</label>
           <div class="freq-chips">
             @for (opt of frequencyOptions; track opt.value) {
-              <button
-                type="button"
-                class="freq-chip"
+              <button type="button" class="freq-chip"
                 [class.freq-chip--active]="frequency() === opt.value"
-                (click)="setFrequency(opt.value)"
-              >
+                (click)="setFrequency(opt.value)">
                 {{ opt.label }}
               </button>
             }
           </div>
         </div>
 
-        <!-- Prochaine exécution -->
         <div class="field">
           <label for="nextDue">Prochaine exécution</label>
-          <input
-            id="nextDue"
-            class="control"
-            type="datetime-local"
+          <input id="nextDue" class="control" type="datetime-local"
             [value]="nextDue()"
-            (input)="onNextDueInput($event)"
-          />
+            (input)="onNextDueInput($event)" />
         </div>
 
-        <!-- Checkbox exécuter à chaque -->
         <div class="field field--checkbox">
           <label class="checkbox-label">
-            <input
-              type="checkbox"
+            <input type="checkbox"
               [checked]="performEveryTime()"
-              (change)="onPerformEveryTimeChange($event)"
-            />
+              (change)="onPerformEveryTimeChange($event)" />
             Exécuter à chaque échéance
           </label>
         </div>
 
-        <!-- Commentaires -->
         <div class="field field--full">
           <label for="comments">Commentaires</label>
-          <textarea
-            id="comments"
-            class="control"
-            rows="3"
+          <textarea id="comments" class="control" rows="3"
             placeholder="Notes ou informations complémentaires…"
             [value]="comments()"
-            (input)="onCommentsInput($event)"
-          ></textarea>
+            (input)="onCommentsInput($event)"></textarea>
         </div>
 
       </div>
@@ -126,7 +110,30 @@
     </section>
   }
 
-  <!-- ===== TABLE / ÉTATS ===== -->
+  <!-- ===== GANTT NAVIGATION ===== -->
+  @if (!error() && !isLoading()) {
+    <div class="gantt-nav">
+      <div class="gantt-nav-left">
+        <div class="nav-arrows">
+          <button class="nav-arr" type="button" (click)="navigate(-1)" title="Période précédente">‹</button>
+          <button class="nav-arr" type="button" (click)="navigate(1)"  title="Période suivante">›</button>
+        </div>
+        <span class="period-label">{{ periodLabel() }}</span>
+        <button class="nav-arr nav-arr--today" type="button" (click)="goToday()" title="Aujourd'hui">Auj.</button>
+      </div>
+      <div class="freq-filter">
+        @for (opt of frequencyOptions; track opt.value) {
+          <button type="button" class="fchip"
+            [class.fchip--on]="activeFreqs().has(opt.value)"
+            (click)="toggleFreq(opt.value)">
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ===== STATES ===== -->
   @if (error()) {
     <div class="state state--error">⚠ {{ error() }}</div>
   } @else if (isLoading()) {
@@ -134,44 +141,87 @@
   } @else if (!hasSchedules()) {
     <div class="state state--empty">Aucun schedule associé à cet ATM.</div>
   } @else {
-    <div class="table-area">
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Nom</th>
-              <th>Groupe</th>
-              <th>Commande</th>
-              <th>Fréquence</th>
-              <th>Prochaine exécution</th>
-              <th>Dernière action</th>
-              <th>Business</th>
-              <th>Commentaire</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (schedule of sortedSchedules(); track schedule.scheduleId) {
-              <tr>
-                <td style="font-weight:600;">{{ schedule.scheduleName }}</td>
-                <td>{{ schedule.groupName }}</td>
-                <td>{{ schedule.commandName }}</td>
-                <td>
-                  <span class="freq-badge {{ freqBadgeClass(schedule.frequency) }}">
-                    {{ schedule.frequency }}
-                  </span>
-                </td>
-                <td class="mono">{{ schedule.nextDue }}</td>
-                <td class="mono">{{ schedule.lastActioned || '—' }}</td>
-                <td>{{ schedule.businessName || '—' }}</td>
-                <td style="color:#64748b;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" [title]="schedule.comments">
-                  {{ schedule.comments || '—' }}
-                </td>
-              </tr>
+
+    <!-- ===== GANTT ===== -->
+    <div class="gantt-outer">
+      <div class="gantt-wrap">
+
+        <!-- Header columns -->
+        <div class="g-header">
+          <div class="g-label-col">Schedule</div>
+          <div class="g-cols-head">
+            @for (col of ganttCols(); track col.index) {
+              <div class="g-col-head" [class.g-col-head--today]="col.isToday">
+                {{ col.label }}
+              </div>
             }
-          </tbody>
-        </table>
+          </div>
+        </div>
+
+        <!-- Rows -->
+        @for (schedule of filteredSchedules(); track schedule.scheduleId) {
+          <div class="g-row" [class.g-row--selected]="selectedScheduleId() === schedule.scheduleId" (mouseleave)="hideTooltip()">
+            <div class="g-name">
+              <div class="freq-dot" [style.background]="freqDotColor(schedule.frequency)"></div>
+              <div class="g-name-info">
+                <span class="g-name-text" [title]="schedule.scheduleName" (click)="scrollToSchedule(schedule)">{{ schedule.scheduleName }}</span>
+                <span class="g-name-sub">{{ schedule.groupName }}</span>
+              </div>
+            </div>
+            <div class="g-track">
+              <!-- Column backgrounds -->
+              @for (col of ganttCols(); track col.index) {
+                <div class="g-col-bg" [class.g-col-bg--today]="col.isToday"
+                  [style.left.%]="col.leftPct"
+                  [style.width.%]="col.widthPct"></div>
+              }
+              <!-- Today line -->
+              @if (todayLinePct() >= 0 && todayLinePct() <= 100) {
+                <div class="today-line" [style.left.%]="todayLinePct()">
+                  <div class="today-dot"></div>
+                </div>
+              }
+              <!-- Bar -->
+              @if (getBarPosition(schedule).inRange) {
+                <div class="g-bar"
+                  id="schedule-bar-{{ schedule.scheduleId }}"
+                  [style.left.%]="getBarPosition(schedule).startPct"
+                  [style.width.%]="getBarPosition(schedule).width"
+                  [style.background]="freqBarColor(schedule.frequency).bg"
+                  [style.color]="freqBarColor(schedule.frequency).text"
+                  (mouseenter)="showTooltip($event, schedule)"
+                  (click)="showTooltip($event, schedule)"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-label]="schedule.scheduleName">
+                  {{ schedule.scheduleName }} · {{ schedule.nextDue | date:'dd/MM/yy' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+
       </div>
     </div>
+
+    <!-- Tooltip -->
+    @if (tooltipVisible() && tooltipSchedule()) {
+      <div class="gantt-tooltip"
+        [style.top.px]="tooltipY()"
+        [style.left.px]="tooltipX()">
+        <div class="tt-title">{{ tooltipSchedule()!.scheduleName }}</div>
+        <div class="tt-row"><span>Groupe</span><span>{{ tooltipSchedule()!.groupName }}</span></div>
+        <div class="tt-row"><span>Commande</span><span>{{ tooltipSchedule()!.commandName }}</span></div>
+        <div class="tt-row"><span>Fréquence</span><span>{{ tooltipSchedule()!.frequency }}</span></div>
+        <div class="tt-row"><span>Prochaine exéc.</span><span>{{ tooltipSchedule()!.nextDue | date:'dd/MM/yyyy HH:mm' }}</span></div>
+        <div class="tt-row"><span>Dernière action</span><span>{{ (tooltipSchedule()!.lastActioned | date:'dd/MM/yyyy HH:mm') || '—' }}</span></div>
+        <div class="tt-row"><span>Business</span><span>{{ tooltipSchedule()!.businessName || '—' }}</span></div>
+        @if (tooltipSchedule()!.comments) {
+          <div class="tt-comments">{{ tooltipSchedule()!.comments }}</div>
+        }
+      </div>
+    }
+
   }
 
 </div>

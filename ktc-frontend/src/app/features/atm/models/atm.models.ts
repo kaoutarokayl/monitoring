@@ -336,8 +336,15 @@ export interface UploadRegistryParams {
   registryKeyName?: string;
 }
 
+/** Paramètres spécifiques pour Upload File (fichier simple) */
+export interface UploadFileParams {
+  fileName?: string;
+  fileSize?: number;
+}
+
 /** Paramètres d'upload — chaque type peut être null si pas de paramètres */
 export interface UploadCommandParams {
+  file?: UploadFileParams;
   trace?: UploadTraceParams;
   traceBackup?: UploadTraceBackupParams;
   eventLog?: UploadEventLogParams;

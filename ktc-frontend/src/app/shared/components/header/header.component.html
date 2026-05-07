@@ -1,22 +1,25 @@
 <header class="app-header">
 
   <!-- Brand -->
-  <div class="header-brand">
+  <a class="header-brand" routerLink="/">
     <div class="brand-mark">K</div>
     <span class="brand-name">KTC Web</span>
-    <span class="brand-sep"></span>
-  </div>
+  </a>
 
   <!-- Right actions -->
   <div class="header-actions">
 
     <!-- Administration -->
     <button class="nav-btn" (click)="goToAdministration()" title="Administration">
-      <span class="nav-btn__icon">🧭</span>
       Administration
     </button>
 
-    <!-- Actions distantes (intégré directement comme bouton fixe) -->
+    <!-- Thème sombre / clair -->
+    <button class="nav-btn theme-toggle-btn" (click)="toggleTheme()" [attr.title]="themeLabel" [attr.aria-label]="themeLabel">
+      <span class="nav-btn__icon">{{ themeIcon }}</span>
+    </button>
+
+    <!-- Actions distantes -->
     <app-atm-remote-commands-menu />
 
     <div class="header-divider"></div>

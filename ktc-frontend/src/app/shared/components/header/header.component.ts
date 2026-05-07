@@ -15,6 +15,9 @@ export class HeaderComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
+  themeMode = signal<'light' | 'dark'>('light');
+  private readonly themeStorageKey = 'ktc-theme';
+
   roles = this.authService.currentUserRoles;
   user  = this.authService.currentUser;
 
@@ -31,6 +34,44 @@ export class HeaderComponent {
     return r[0];
   });
 
+  get themeIcon() {
+    return this.themeMode() === 'dark' ? '☀️' : '🌙';
+  }
+
+  get themeLabel() {
+    return this.themeMode() === 'dark' ? 'Mode clair' : 'Mode sombre';
+  }
+
+  constructor() {
+    this.initializeTheme();
+  }
+
+  toggleTheme() {
+    this.applyTheme(this.themeMode() === 'dark' ? 'light' : 'dark');
+  }
+
+  private initializeTheme() {
+    const savedTheme = localStorage.getItem(this.themeStorageKey) as 'light' | 'dark' | null;
+    const theme = savedTheme === 'dark' || savedTheme === 'light'
+      ? savedTheme
+      : this.getPreferredTheme();
+
+    this.applyTheme(theme);
+  }
+
+  private getPreferredTheme(): 'light' | 'dark' {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  private applyTheme(theme: 'light' | 'dark') {
+    this.themeMode.set(theme);
+    document.documentElement.classList.toggle('theme-dark', theme === 'dark');
+    document.documentElement.classList.toggle('theme-light', theme === 'light');
+    document.body.classList.toggle('theme-dark', theme === 'dark');
+    document.body.classList.toggle('theme-light', theme === 'light');
+    localStorage.setItem(this.themeStorageKey, theme);
+  }
+
   toggleProfile(event?: Event) {
     event?.stopPropagation();
     this.isProfileOpen.update(v => !v);
@@ -46,8 +87,8 @@ export class HeaderComponent {
   }
 
   // Nouvelle méthode : clic sur Administration → va sur la liste des ATMs
-goToAdministration() {
-  this.isProfileOpen.set(false);
-  this.router.navigate(['/admin']);   // Va sur le layout admin (qui redirige vers /admin/atms)
-}
+  goToAdministration() {
+    this.isProfileOpen.set(false);
+    this.router.navigate(['/admin']);   // Va sur le layout admin (qui redirige vers /admin/atms)
+  }
 }

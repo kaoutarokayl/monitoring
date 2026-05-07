@@ -178,3 +178,37 @@
   background: #fff5f5;
   color: #b91c1c;
 }
+
+:host-context(.theme-dark) {
+  --border-color: var(--border);
+  --surface: var(--surface);
+  --surface-2: var(--surface-2);
+  --table-header-bg: var(--surface-2);
+  --muted: var(--muted);
+  --text: var(--text);
+}
+
+:host-context(.theme-dark) .atm-page-header p,
+:host-context(.theme-dark) .uploads-table th,
+:host-context(.theme-dark) .uploads-table td,
+:host-context(.theme-dark) .uploads-table tbody tr:nth-child(even) td,
+:host-context(.theme-dark) .uploads-table tbody tr:hover td,
+:host-context(.theme-dark) .table-wrapper,
+:host-context(.theme-dark) .count-pill,
+:host-context(.theme-dark) .state-box,
+:host-context(.theme-dark) .error-box,
+:host-context(.theme-dark) .table-footer {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+:host-context(.theme-dark) .uploads-table thead tr,
+:host-context(.theme-dark) .table-footer {
+  background: var(--table-header-bg) !important;
+}
+
+:host-context(.theme-dark) .uploads-table tbody tr:hover td,
+:host-context(.theme-dark) .btn:hover {
+  background: var(--hover-bg) !important;
+}

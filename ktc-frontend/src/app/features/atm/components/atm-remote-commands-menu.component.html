@@ -8,7 +8,6 @@
     (click)="toggleMenu($event)"
     title="Commandes distantes : Refresh, Reboot, Supervisor, Upload…"
   >
-    <span class="remote-menu__icon">⚡</span>
     Actions distantes
     <span class="remote-menu__chev">▾</span>
   </button>
@@ -107,6 +106,33 @@
       </div>
 
       <!-- === FORMULAIRES D'UPLOAD SPÉCIFIQUES === -->
+
+      <!-- Upload File -->
+      @if (uploadType() === 'file') {
+        <div class="modal-field">
+          <label for="file-upload">Fichier à télécharger</label>
+          <div class="file-upload-wrapper">
+            <input
+              id="file-upload"
+              type="file"
+              class="file-input"
+              (change)="onFileSelected($event)"
+              accept="*"
+            />
+            <label for="file-upload" class="file-upload-label">
+              <span class="file-icon">📎</span>
+              <span class="file-text">
+                @if (fileParams().file) {
+                  <span>{{ fileParams().file.name }}</span>
+                  <span class="file-size">({{ (fileParams().file.size / 1024 / 1024 | number: '1.2-2') }} MB)</span>
+                } @else {
+                  <span>Cliquez pour sélectionner un fichier</span>
+                }
+              </span>
+            </label>
+          </div>
+        </div>
+      }
 
       <!-- Upload Trace -->
       @if (uploadType() === 'trace') {
