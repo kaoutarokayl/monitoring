@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgIf } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
-import { NgIf } from '@angular/common'; // ✅ AJOUT ICI
 
 @Component({
   selector: 'app-login',
@@ -14,6 +14,7 @@ export class LoginComponent {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
+  showPassword = false;
 
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.loginForm = this.fb.group({
@@ -40,7 +41,7 @@ export class LoginComponent {
         this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur de connexion';
+        this.errorMessage = err?.error?.message || 'Identifiants invalides. Veuillez réessayer.';
         this.isLoading = false;
       }
     });
