@@ -122,9 +122,10 @@
             <label for="file-upload" class="file-upload-label">
               <span class="file-icon">📎</span>
               <span class="file-text">
-                @if (fileParams().file) {
-                  <span>{{ fileParams().file.name }}</span>
-                  <span class="file-size">({{ (fileParams().file.size / 1024 / 1024 | number: '1.2-2') }} MB)</span>
+                @let file = fileParams().file;
+                @if (file) {
+                  <span>{{ file.name }}</span>
+                  <span class="file-size">({{ (file.size / 1024 / 1024 | number: '1.2-2') }} MB)</span>
                 } @else {
                   <span>Cliquez pour sélectionner un fichier</span>
                 }
