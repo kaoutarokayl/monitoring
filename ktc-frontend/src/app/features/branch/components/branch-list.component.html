@@ -3,8 +3,11 @@
   <!-- ── Page header ─────────────────────────────────────────────────────── -->
   <div class="page-head">
     <div>
-      <h1 class="page-title">Branches</h1>
-      <p class="page-subtitle">Gestion des branches / agences</p>
+      <div class="page-breadcrumb">
+        Administration <span>›</span> Branches
+      </div>
+      <h1 class="page-title">Branches & Agences</h1>
+      <p class="page-subtitle">Gestion des branches et points de service</p>
     </div>
     <div class="head-actions">
       <button class="btn btn-primary" (click)="goCreate()">
@@ -22,20 +25,24 @@
   </div>
 
   <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
-  <div class="toolbar card">
+  <div class="toolbar">
     <input
       class="search-input"
       type="text"
-      placeholder="Rechercher par nom, ID, displayId…"
-      [(ngModel)]="searchQuery"
+      placeholder="Rechercher par nom, ID, Display ID…"
+      [ngModel]="searchQuery()"
       (ngModelChange)="searchQuery.set($event)"
     />
   </div>
 
-  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
-  <div *ngIf="isLoading()" class="state-box">
-    <div class="spinner"></div>
-    <p>Chargement des branches…</p>
+  <!-- ── Loading (Skeleton cards) ───────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="branch-grid branch-grid--skeleton">
+    <article class="branch-card branch-card--skeleton" *ngFor="let item of [1,2,3,4,5,6]">
+      <div class="skeleton-line skeleton-line--title"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line skeleton-line--short"></div>
+    </article>
   </div>
 
   <!-- ── Error ───────────────────────────────────────────────────────────── -->
@@ -44,65 +51,90 @@
     <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
   </div>
 
-  <!-- ── Table ───────────────────────────────────────────────────────────── -->
-  <div *ngIf="!isLoading() && !error()" class="table-card card">
-    <div class="table-wrapper">
-      <table class="branch-table">
-        <thead>
-          <tr>
-            <th (click)="sort('branchId')">#ID {{ sortIcon('branchId') }}</th>
-            <th (click)="sort('branchName')">Nom {{ sortIcon('branchName') }}</th>
-            <th (click)="sort('displayId')">Display ID {{ sortIcon('displayId') }}</th>
-            <th (click)="sort('businessId')">Business ID {{ sortIcon('businessId') }}</th>
-            <th>Infos additionnelles</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Empty state -->
-          <tr *ngIf="filtered().length === 0">
-            <td colspan="6" class="empty-row">
-              <div class="empty-state">
-                <div class="empty-icon">🏢</div>
-                <p>Aucune branche trouvée</p>
-              </div>
-            </td>
-          </tr>
+  <!-- ── Cards ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading() && !error()" class="card-surface">
 
-          <!-- Rows -->
-          <tr *ngFor="let branch of filtered()" class="branch-row">
-            <td class="col-id">#{{ branch.branchId }}</td>
+    <div class="card-toolbar">
+      <span class="card-toolbar-label">Trier par</span>
+      <button class="sort-chip" (click)="sort('branchName')">
+        Nom <span>{{ sortIcon('branchName') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('branchId')">
+        ID <span>{{ sortIcon('branchId') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('businessId')">
+        Business <span>{{ sortIcon('businessId') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('displayId')">
+        Display ID <span>{{ sortIcon('displayId') }}</span>
+      </button>
+    </div>
 
-            <td class="col-name">{{ branch.branchName }}</td>
+    <div *ngIf="filtered().length === 0" class="empty-state">
+      <div class="empty-icon">🏢</div>
+      <p>Aucune branche trouvée avec ces filtres</p>
+    </div>
 
-            <td>
-              <code *ngIf="branch.displayId" class="display-id">{{ branch.displayId }}</code>
-              <span *ngIf="!branch.displayId" class="muted">—</span>
-            </td>
+    <div *ngIf="filtered().length > 0" class="branch-grid">
+      <article
+        *ngFor="let branch of filtered(); trackBy: trackByBranchId"
+        class="branch-card"
+        (click)="goEdit(branch.branchId)"
+      >
+        <!-- Head -->
+        <header class="branch-card__head">
+          <div class="name-cell">
+            <span class="status-dot dot--ok"></span>
+            <h3>{{ branch.branchName }}</h3>
+          </div>
+          <span class="badge badge--ok">Active</span>
+        </header>
 
-            <td class="col-business">
-              <span class="business-badge">{{ branch.businessId }}</span>
-            </td>
+        <!-- Meta -->
+        <div class="branch-card__meta">
+          <div class="meta-row">
+            <span class="meta-icon">🆔</span>
+            <span class="meta-label">ID</span>
+            <span>#{{ branch.branchId }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🏷️</span>
+            <span class="meta-label">Display</span>
+            <code *ngIf="branch.displayId">{{ branch.displayId }}</code>
+            <span *ngIf="!branch.displayId" class="meta-empty">—</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🏢</span>
+            <span class="meta-label">Business</span>
+            <span class="business-badge">#{{ branch.businessId }}</span>
+          </div>
+          <div class="meta-row" *ngIf="branch.additionalInfo">
+            <span class="meta-icon">📝</span>
+            <span class="meta-label">Info</span>
+            <span class="info-text" [title]="branch.additionalInfo">
+              {{ branch.additionalInfo | slice:0:40 }}{{ branch.additionalInfo.length > 40 ? '…' : '' }}
+            </span>
+          </div>
+        </div>
 
-<td class="col-info">
-  <span *ngIf="branch.additionalInfo" class="info-text" [title]="branch.additionalInfo">
-    {{ branch.additionalInfo | slice:0:60 }}{{ branch.additionalInfo.length > 60 ? '…' : '' }}
-  </span>
-  <span *ngIf="!branch.additionalInfo" class="muted">—</span>
-</td>
-
-            <td class="col-actions">
-              <button class="icon-btn icon-btn--edit" title="Modifier" (click)="goEdit(branch.branchId)">✏️</button>
-              <button class="icon-btn icon-btn--del"  title="Supprimer" (click)="confirmDelete(branch)">🗑️</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Actions -->
+        <footer class="branch-card__actions">
+          <button class="icon-btn icon-btn--edit" title="Modifier"
+            (click)="goEdit(branch.branchId); $event.stopPropagation()">
+            ✏️ Modifier
+          </button>
+          <button class="icon-btn icon-btn--del" title="Supprimer"
+            (click)="confirmDelete(branch); $event.stopPropagation()">
+            🗑 Supprimer
+          </button>
+        </footer>
+      </article>
     </div>
 
     <div class="table-footer">
-      {{ filtered().length }} résultat(s) affiché(s)
+      {{ filtered().length }} branche(s) affichée(s)
     </div>
+
   </div>
 
 </div>

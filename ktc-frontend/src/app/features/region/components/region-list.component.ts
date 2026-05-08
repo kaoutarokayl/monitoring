@@ -16,12 +16,12 @@ export class RegionListComponent implements OnInit {
   private router     = inject(Router);
 
   // ── State ──────────────────────────────────────────────────────────────────
-  regions      = signal<RegionListDto[]>([]);
-  isLoading    = signal(true);
-  error        = signal<string | null>(null);
-  searchQuery  = signal('');
-  sortField    = signal<keyof RegionListDto>('regionName');
-  sortAsc      = signal(true);
+  regions     = signal<RegionListDto[]>([]);
+  isLoading   = signal(true);
+  error       = signal<string | null>(null);
+  searchQuery = signal('');
+  sortField   = signal<keyof RegionListDto>('regionName');
+  sortAsc     = signal(true);
 
   // ── Computed ───────────────────────────────────────────────────────────────
   filtered = computed(() => {
@@ -30,12 +30,12 @@ export class RegionListComponent implements OnInit {
     const asc   = this.sortAsc();
 
     return [...this.regions()]
-      .filter(b => {
+      .filter(r => {
         return !q ||
-          b.regionName.toLowerCase().includes(q) ||
-          b.displayId.toLowerCase().includes(q) ||
-          b.businessName.toLowerCase().includes(q) ||
-          String(b.regionId).includes(q);
+          r.regionName.toLowerCase().includes(q) ||
+          (r.displayId ?? '').toLowerCase().includes(q) ||
+          r.businessName.toLowerCase().includes(q) ||
+          String(r.regionId).includes(q);
       })
       .sort((a, b) => {
         const va = a[field] ?? '';
@@ -97,5 +97,10 @@ export class RegionListComponent implements OnInit {
   sortIcon(field: keyof RegionListDto): string {
     if (this.sortField() !== field) return '↕';
     return this.sortAsc() ? '↑' : '↓';
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  trackByRegionId(_: number, r: RegionListDto): number {
+    return r.regionId;
   }
 }

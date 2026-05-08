@@ -16,12 +16,12 @@ export class BusinessListComponent implements OnInit {
   private router     = inject(Router);
 
   // ── State ──────────────────────────────────────────────────────────────────
-  businesses   = signal<BusinessDto[]>([]);
-  isLoading    = signal(true);
-  error        = signal<string | null>(null);
-  searchQuery  = signal('');
-  sortField    = signal<keyof BusinessDto>('businessName');
-  sortAsc      = signal(true);
+  businesses  = signal<BusinessDto[]>([]);
+  isLoading   = signal(true);
+  error       = signal<string | null>(null);
+  searchQuery = signal('');
+  sortField   = signal<keyof BusinessDto>('businessName');
+  sortAsc     = signal(true);
 
   // ── Computed ───────────────────────────────────────────────────────────────
   filtered = computed(() => {
@@ -33,7 +33,7 @@ export class BusinessListComponent implements OnInit {
       .filter(b => {
         return !q ||
           b.businessName.toLowerCase().includes(q) ||
-          b.displayId.toLowerCase().includes(q) ||
+          (b.displayId ?? '').toLowerCase().includes(q) ||
           String(b.businessId).includes(q);
       })
       .sort((a, b) => {
@@ -97,5 +97,9 @@ export class BusinessListComponent implements OnInit {
     if (this.sortField() !== field) return '↕';
     return this.sortAsc() ? '↑' : '↓';
   }
-}
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  trackByBusinessId(_: number, b: BusinessDto): number {
+    return b.businessId;
+  }
+}

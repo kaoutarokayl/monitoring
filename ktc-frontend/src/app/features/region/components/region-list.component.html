@@ -3,11 +3,15 @@
   <!-- ── Page header ─────────────────────────────────────────────────────── -->
   <div class="page-head">
     <div>
-      <h1 class="page-title">Regions</h1>
+      <div class="page-breadcrumb">
+        Administration <span>›</span> Régions
+      </div>
+      <h1 class="page-title">Régions</h1>
+      <p class="page-subtitle">Gestion des régions et hiérarchies géographiques</p>
     </div>
     <div class="head-actions">
       <button class="btn btn-primary" (click)="goCreate()">
-        <span class="btn-icon">＋</span> Nouvelle Région
+        <span class="btn-icon">＋</span> Nouvelle région
       </button>
     </div>
   </div>
@@ -16,12 +20,12 @@
   <div class="kpi-strip">
     <div class="kpi-card">
       <span class="kpi-value">{{ totalCount() }}</span>
-      <span class="kpi-label">Total</span>
+      <span class="kpi-label">Total régions</span>
     </div>
   </div>
 
   <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
-  <div class="toolbar card">
+  <div class="toolbar">
     <input
       class="search-input"
       type="text"
@@ -31,10 +35,14 @@
     />
   </div>
 
-  <!-- ── Loading ─────────────────────────────────────────────────────────── -->
-  <div *ngIf="isLoading()" class="state-box">
-    <div class="spinner"></div>
-    <p>Chargement des régions…</p>
+  <!-- ── Loading (Skeleton cards) ───────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="region-grid region-grid--skeleton">
+    <article class="region-card region-card--skeleton" *ngFor="let item of [1,2,3,4,5,6]">
+      <div class="skeleton-line skeleton-line--title"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line skeleton-line--short"></div>
+    </article>
   </div>
 
   <!-- ── Error ───────────────────────────────────────────────────────────── -->
@@ -43,74 +51,89 @@
     <button class="btn btn-secondary btn--sm" (click)="load()">Réessayer</button>
   </div>
 
-  <!-- ── Table ───────────────────────────────────────────────────────────── -->
-  <div *ngIf="!isLoading() && !error()" class="table-card card">
-    <div class="table-wrapper">
-      <table class="business-table">
-        <thead>
-          <tr>
-            <th (click)="sort('regionId')">#ID {{ sortIcon('regionId') }}</th>
-            <th (click)="sort('regionName')">Nom {{ sortIcon('regionName') }}</th>
-            <th (click)="sort('displayId')">Display ID {{ sortIcon('displayId') }}</th>
-            <th (click)="sort('businessName')">Business {{ sortIcon('businessName') }}</th>
-            <th (click)="sort('regionLevel')">Niveau {{ sortIcon('regionLevel') }}</th>
-            <th (click)="sort('parentRegionId')">Parent {{ sortIcon('parentRegionId') }}</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+  <!-- ── Cards ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading() && !error()" class="card-surface">
 
-          <!-- Empty state -->
-          <tr *ngIf="filtered().length === 0" class="empty-row">
-            <td colspan="7">
-              <div class="empty-state">
-                <div class="empty-icon">🏢</div>
-                <p>Aucune région trouvée</p>
-              </div>
-            </td>
-          </tr>
+    <div class="card-toolbar">
+      <span class="card-toolbar-label">Trier par</span>
+      <button class="sort-chip" (click)="sort('regionName')">
+        Nom <span>{{ sortIcon('regionName') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('regionId')">
+        ID <span>{{ sortIcon('regionId') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('regionLevel')">
+        Niveau <span>{{ sortIcon('regionLevel') }}</span>
+      </button>
+      <button class="sort-chip" (click)="sort('businessName')">
+        Business <span>{{ sortIcon('businessName') }}</span>
+      </button>
+    </div>
 
-          <!-- Rows -->
-          <tr *ngFor="let b of filtered()" class="business-row">
+    <div *ngIf="filtered().length === 0" class="empty-state">
+      <div class="empty-icon">🗺️</div>
+      <p>Aucune région trouvée avec ces filtres</p>
+    </div>
 
-            <td class="col-id">#{{ b.regionId }}</td>
+    <div *ngIf="filtered().length > 0" class="region-grid">
+      <article
+        *ngFor="let r of filtered(); trackBy: trackByRegionId"
+        class="region-card"
+        (click)="goEdit(r.regionId)"
+      >
+        <!-- Head -->
+        <header class="region-card__head">
+          <div class="name-cell">
+            <span class="status-dot dot--ok"></span>
+            <h3>{{ r.regionName }}</h3>
+          </div>
+          <span class="badge-level">Niv. {{ r.regionLevel }}</span>
+        </header>
 
-            <td class="col-name">
-              <div class="name-cell">
-                <span class="status-dot dot--ok"></span>
-                <span>{{ b.regionName }}</span>
-              </div>
-            </td>
+        <!-- Meta -->
+        <div class="region-card__meta">
+          <div class="meta-row">
+            <span class="meta-icon">🆔</span>
+            <span class="meta-label">ID</span>
+            <span>#{{ r.regionId }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🏷️</span>
+            <span class="meta-label">Display</span>
+            <code *ngIf="r.displayId">{{ r.displayId }}</code>
+            <span *ngIf="!r.displayId" class="meta-empty">—</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🏢</span>
+            <span class="meta-label">Business</span>
+            <span class="business-badge">{{ r.businessName }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🔗</span>
+            <span class="meta-label">Parent</span>
+            <span *ngIf="r.parentRegionId > 0" class="parent-badge">#{{ r.parentRegionId }}</span>
+            <span *ngIf="r.parentRegionId === 0" class="meta-empty">—</span>
+          </div>
+        </div>
 
-            <td>{{ b.displayId || '—' }}</td>
-
-            <td>
-              <span class="business-tag">{{ b.businessName }}</span>
-            </td>
-
-            <td>
-              <span class="badge-level">Niv. {{ b.regionLevel }}</span>
-            </td>
-
-            <td>
-              <span *ngIf="b.parentRegionId > 0" class="parent-tag">#{{ b.parentRegionId }}</span>
-              <span *ngIf="b.parentRegionId === 0" class="muted-dash">—</span>
-            </td>
-
-            <td class="col-actions">
-              <button class="icon-btn icon-btn--edit" title="Modifier" (click)="goEdit(b.regionId)">✏️</button>
-              <button class="icon-btn icon-btn--del"  title="Supprimer" (click)="confirmDelete(b)">🗑️</button>
-            </td>
-
-          </tr>
-
-        </tbody>
-      </table>
+        <!-- Actions -->
+        <footer class="region-card__actions">
+          <button class="icon-btn icon-btn--edit" title="Modifier"
+            (click)="goEdit(r.regionId); $event.stopPropagation()">
+            ✏️ Modifier
+          </button>
+          <button class="icon-btn icon-btn--del" title="Supprimer"
+            (click)="confirmDelete(r); $event.stopPropagation()">
+            🗑 Supprimer
+          </button>
+        </footer>
+      </article>
     </div>
 
     <div class="table-footer">
-      {{ filtered().length }} résultat(s) affiché(s)
+      {{ filtered().length }} région(s) affichée(s)
     </div>
+
   </div>
 
 </div>

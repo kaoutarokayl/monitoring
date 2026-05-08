@@ -55,14 +55,13 @@ export class BranchListComponent implements OnInit {
   load(): void {
     this.isLoading.set(true);
     this.error.set(null);
-
     this.atmService.getBranches().subscribe({
       next: data => {
         this.branches.set(data);
         this.isLoading.set(false);
       },
       error: err => {
-        this.error.set(err?.error?.message || 'Impossible de charger les branches');
+        this.error.set(err?.error?.message ?? 'Impossible de charger les branches');
         this.isLoading.set(false);
       }
     });
@@ -79,16 +78,9 @@ export class BranchListComponent implements OnInit {
 
   confirmDelete(branch: BranchDto): void {
     if (!confirm(`Supprimer la branche "${branch.branchName}" (#${branch.branchId}) ?`)) return;
-
     this.atmService.deleteBranch(branch.branchId).subscribe({
-      next: () => {
-        this.branches.update(list =>
-          list.filter(b => b.branchId !== branch.branchId)
-        );
-      },
-      error: err => {
-        alert(err?.error?.message || 'Erreur lors de la suppression');
-      }
+      next: () => this.branches.update(list => list.filter(b => b.branchId !== branch.branchId)),
+      error: err => alert(err?.error?.message ?? 'Erreur lors de la suppression')
     });
   }
 
@@ -106,5 +98,9 @@ export class BranchListComponent implements OnInit {
     if (this.sortField() !== field) return '↕';
     return this.sortAsc() ? '↑' : '↓';
   }
-}
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  trackByBranchId(_: number, branch: BranchDto): number {
+    return branch.branchId;
+  }
+}
