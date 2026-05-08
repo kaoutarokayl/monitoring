@@ -3,12 +3,15 @@
   <!-- ── Page header ─────────────────────────────────────────────────────── -->
   <div class="page-head">
     <div>
-      <h1 class="page-title">ATMs</h1>
-      <p class="page-subtitle">Gestion des distributeurs automatiques</p>
+      <div class="page-breadcrumb">
+        Administration <span>›</span> ATMs
+      </div>
+      <h1 class="page-title">Distributeurs automatiques</h1>
+      <p class="page-subtitle">Gestion et supervision du parc d'ATMs</p>
     </div>
     <div class="head-actions">
       <button class="btn btn-secondary" (click)="goMap()">
-        <span class="btn-icon">🗺️</span> Vue Carte
+        <span class="btn-icon">🗺️</span> Vue carte
       </button>
       <button class="btn btn-primary" (click)="goCreate()">
         <span class="btn-icon">＋</span> Nouvel ATM
@@ -33,15 +36,23 @@
   </div>
 
   <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
-  <div class="toolbar card">
-    <input class="search-input" type="text" placeholder="Rechercher par nom, IP, ID…" [(ngModel)]="searchQuery"
-      (ngModelChange)="searchQuery.set($event)" />
+  <div class="toolbar">
+    <input
+      class="search-input"
+      type="text"
+      placeholder="Rechercher par nom, IP, ID…"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="searchQuery.set($event)"
+    />
     <div class="filter-group">
-      <button class="filter-btn" [class.active]="filterStatus() === 'all'"
+      <button class="filter-btn"
+        [class.active]="filterStatus() === 'all'"
         (click)="filterStatus.set('all')">Tous</button>
-      <button class="filter-btn filter-btn--ok" [class.active]="filterStatus() === 'active'"
+      <button class="filter-btn filter-btn--ok"
+        [class.active]="filterStatus() === 'active'"
         (click)="filterStatus.set('active')">Actifs</button>
-      <button class="filter-btn filter-btn--down" [class.active]="filterStatus() === 'inactive'"
+      <button class="filter-btn filter-btn--down"
+        [class.active]="filterStatus() === 'inactive'"
         (click)="filterStatus.set('inactive')">Inactifs</button>
     </div>
   </div>
@@ -63,16 +74,18 @@
   </div>
 
   <!-- ── Cards ───────────────────────────────────────────────────────────── -->
-  <div *ngIf="!isLoading() && !error()" class="card card-surface">
+  <div *ngIf="!isLoading() && !error()" class="card-surface">
+
     <div class="card-toolbar">
+      <span class="card-toolbar-label">Trier par</span>
       <button class="sort-chip" (click)="sort('clientName')">
-        <span>Nom</span> <span>{{ sortIcon('clientName') }}</span>
+        Nom <span>{{ sortIcon('clientName') }}</span>
       </button>
       <button class="sort-chip" (click)="sort('clientId')">
-        <span>ID</span> <span>{{ sortIcon('clientId') }}</span>
+        ID <span>{{ sortIcon('clientId') }}</span>
       </button>
       <button class="sort-chip" (click)="sort('active')">
-        <span>Statut</span> <span>{{ sortIcon('active') }}</span>
+        Statut <span>{{ sortIcon('active') }}</span>
       </button>
     </div>
 
@@ -82,30 +95,63 @@
     </div>
 
     <div *ngIf="filtered().length > 0" class="atm-grid">
-      <article *ngFor="let atm of filtered(); trackBy: trackByClientId" class="atm-card" (click)="goEdit(atm.clientId)">
+      <article
+        *ngFor="let atm of filtered(); trackBy: trackByClientId"
+        class="atm-card"
+        (click)="goEdit(atm.clientId)"
+      >
+        <!-- Head -->
         <header class="atm-card__head">
           <div class="name-cell">
-            <span class="status-dot" [class.dot--ok]="atm.active" [class.dot--down]="!atm.active"></span>
+            <span class="status-dot"
+              [class.dot--ok]="atm.active"
+              [class.dot--down]="!atm.active">
+            </span>
             <h3>{{ atm.clientName }}</h3>
           </div>
-          <span class="badge" [class.badge--ok]="atm.active" [class.badge--down]="!atm.active">
-            <span class="status-icon">{{ atm.active ? '🟢' : '🔴' }}</span>
+          <span class="badge"
+            [class.badge--ok]="atm.active"
+            [class.badge--down]="!atm.active">
             {{ atm.active ? 'Online' : 'Offline' }}
           </span>
         </header>
 
+        <!-- Meta -->
         <div class="atm-card__meta">
-          <div class="meta-row"><span class="meta-icon">🆔</span> <span>#{{ atm.clientId }}</span></div>
-          <div class="meta-row"><span class="meta-icon">🌐</span> <code>{{ atm.networkAddress }}</code></div>
-          <div class="meta-row"><span class="meta-icon">🏧</span> <span>{{ atm.hardwareTypeName ?? 'Unknown hardware' }}</span></div>
-          <div class="meta-row"><span class="meta-icon">🔌</span>
-            <span class="conn-badge" [ngClass]="'conn-' + atm.connectable">{{ connectableLabel(atm.connectable) }}</span>
+          <div class="meta-row">
+            <span class="meta-icon">🆔</span>
+            <span class="meta-label">ID</span>
+            <span>#{{ atm.clientId }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🌐</span>
+            <span class="meta-label">IP</span>
+            <code>{{ atm.networkAddress }}</code>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🏧</span>
+            <span class="meta-label">Type</span>
+            <span>{{ atm.hardwareTypeName ?? 'Unknown' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-icon">🔌</span>
+            <span class="meta-label">Conn.</span>
+            <span class="conn-badge" [ngClass]="'conn-' + atm.connectable">
+              {{ connectableLabel(atm.connectable) }}
+            </span>
           </div>
         </div>
 
+        <!-- Actions -->
         <footer class="atm-card__actions">
-          <button class="icon-btn icon-btn--edit" title="Modifier" (click)="goEdit(atm.clientId); $event.stopPropagation()">✏️ Edit</button>
-          <button class="icon-btn icon-btn--del" title="Supprimer" (click)="confirmDelete(atm); $event.stopPropagation()">🗑 Delete</button>
+          <button class="icon-btn icon-btn--edit" title="Modifier"
+            (click)="goEdit(atm.clientId); $event.stopPropagation()">
+            ✏️ Modifier
+          </button>
+          <button class="icon-btn icon-btn--del" title="Supprimer"
+            (click)="confirmDelete(atm); $event.stopPropagation()">
+            🗑 Supprimer
+          </button>
         </footer>
       </article>
     </div>
@@ -113,6 +159,7 @@
     <div class="table-footer">
       {{ filtered().length }} ATM(s) affiché(s)
     </div>
+
   </div>
 
 </div>
