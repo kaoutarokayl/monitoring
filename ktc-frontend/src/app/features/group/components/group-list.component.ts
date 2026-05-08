@@ -24,6 +24,8 @@ export class GroupListComponent implements OnInit {
   isLoading        = signal(false);
   error            = signal<string | null>(null);
   searchQuery      = signal('');
+  sortField        = signal<keyof Group>('groupName');
+  sortAsc          = signal(true);
 
   // ── Add-client state ───────────────────────────────────────────────────────
   allAtms           = signal<ClientAtm[]>([]);
@@ -34,13 +36,23 @@ export class GroupListComponent implements OnInit {
 
   // ── Computed ───────────────────────────────────────────────────────────────
   filtered = computed(() => {
-    const q = this.searchQuery().toLowerCase();
-    return this.groups().filter(g =>
-      !q ||
-      g.groupName?.toLowerCase().includes(q) ||
-      String(g.groupId).includes(q) ||
-      g.groupDescription?.toLowerCase().includes(q)
-    );
+    const q     = this.searchQuery().toLowerCase();
+    const field = this.sortField();
+    const asc   = this.sortAsc();
+
+    return [...this.groups()]
+      .filter(g =>
+        !q ||
+        g.groupName?.toLowerCase().includes(q) ||
+        String(g.groupId).includes(q) ||
+        g.groupDescription?.toLowerCase().includes(q)
+      )
+      .sort((a, b) => {
+        const va = (a as any)[field] ?? '';
+        const vb = (b as any)[field] ?? '';
+        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+        return asc ? cmp : -cmp;
+      });
   });
 
   memberIds = computed(() =>
@@ -73,10 +85,6 @@ export class GroupListComponent implements OnInit {
       next: data => {
         this.groups.set(data);
         this.isLoading.set(false);
-        // Sélectionne automatiquement le premier groupe
-        if (data.length > 0 && !this.selectedGroupId()) {
-          this.selectGroup(data[0].groupId);
-        }
       },
       error: err => {
         this.error.set(err?.error?.message ?? 'Impossible de charger les groupes');
@@ -95,6 +103,28 @@ export class GroupListComponent implements OnInit {
       next: data => this.selectedGroupDtl.set(data),
       error: err => console.error('Erreur chargement groupe:', err)
     });
+  }
+
+  closeDetail(): void {
+    this.selectedGroupId.set(null);
+    this.selectedGroupDtl.set(null);
+    this.selectedClientIds.set(new Set());
+    this.clientSearch.set('');
+  }
+
+  // ── Sorting ────────────────────────────────────────────────────────────────
+  sort(field: keyof Group): void {
+    if (this.sortField() === field) {
+      this.sortAsc.update(v => !v);
+    } else {
+      this.sortField.set(field);
+      this.sortAsc.set(true);
+    }
+  }
+
+  sortIcon(field: keyof Group): string {
+    if (this.sortField() !== field) return '↕';
+    return this.sortAsc() ? '↑' : '↓';
   }
 
   // ── ATMs disponibles ───────────────────────────────────────────────────────
@@ -176,10 +206,6 @@ export class GroupListComponent implements OnInit {
     this.router.navigate(['/admin/groups/create']);
   }
 
-  /**
-   * Navigue vers le formulaire d'ÉDITION d'un groupe existant.
-   * Route : /admin/groups/:id/edit → GroupFormComponent avec @Input group prérempli.
-   */
   goEdit(id: number): void {
     this.router.navigate(['/admin/groups', id, 'edit']);
   }
@@ -191,11 +217,7 @@ export class GroupListComponent implements OnInit {
       next: () => {
         this.groups.update(list => list.filter(x => x.groupId !== g.groupId));
         if (this.selectedGroupId() === g.groupId) {
-          this.selectedGroupId.set(null);
-          this.selectedGroupDtl.set(null);
-          // Sélectionne le premier groupe restant
-          const remaining = this.groups();
-          if (remaining.length > 0) this.selectGroup(remaining[0].groupId);
+          this.closeDetail();
         }
       },
       error: err => alert(err?.error?.message ?? 'Erreur lors de la suppression')
