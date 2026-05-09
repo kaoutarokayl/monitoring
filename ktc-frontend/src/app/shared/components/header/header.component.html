@@ -34,6 +34,11 @@
       Administration
     </button>
 
+    <!-- Campagnes Marketing -->
+    <button class="nav-btn" [class.nav-btn--active]="isCampaignRoute()" (click)="goToCampaigns()" title="Campagnes Marketing">
+      Campagnes
+    </button>
+
     <!-- Thème sombre / clair -->
     <button class="nav-btn theme-toggle-btn" (click)="toggleTheme()" [attr.title]="themeLabel" [attr.aria-label]="themeLabel">
       <span class="nav-btn__icon">{{ themeIcon }}</span>

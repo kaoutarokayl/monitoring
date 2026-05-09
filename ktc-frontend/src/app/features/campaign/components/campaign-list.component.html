@@ -1,0 +1,190 @@
+<div class="page-wrapper">
+
+  <!-- ── Toolbar ────────────────────────────────────────────────────────── -->
+  <div class="page-toolbar">
+    <button class="btn btn-primary" (click)="goCreate()">
+      <i class="ti ti-plus"></i> Nouvelle campagne
+    </button>
+    <button class="btn btn-secondary" (click)="load()">
+      <i class="ti ti-refresh"></i> Actualiser
+    </button>
+  </div>
+
+  <!-- ── Filter Options + Status ────────────────────────────────────────── -->
+  <div class="top-row">
+
+    <!-- Filter Options -->
+    <fieldset class="panel filter-panel">
+      <legend class="panel-legend">Filter Options</legend>
+      <div class="filter-grid">
+
+        <div class="filter-group">
+          <label class="filter-label">Business</label>
+          <select class="filter-select"
+            [ngModel]="businessFilter()"
+            (ngModelChange)="businessFilter.set($event)">
+            <option value="">All</option>
+            <option *ngFor="let b of businesses()" [value]="b.businessId">{{ b.businessName }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Campaign Name</label>
+          <input class="filter-input" type="text" placeholder="Search…"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)" />
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Campaign Status</label>
+          <select class="filter-select"
+            [ngModel]="statusFilter()"
+            (ngModelChange)="statusFilter.set($event === '' ? null : +$event)">
+            <option value="">All</option>
+            <option value="0">Enabled</option>
+            <option value="1">Disabled</option>
+            <option value="2">Expired</option>
+            <option value="3">Purged</option>
+            <option value="4">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Campaign Type</label>
+          <select class="filter-select"
+            [ngModel]="typeFilter()"
+            (ngModelChange)="typeFilter.set($event === '' ? null : +$event)">
+            <option value="">All</option>
+            <option value="0">General</option>
+            <option value="1">Targeted</option>
+            <option value="2">External</option>
+          </select>
+        </div>
+
+        <button class="btn-update" (click)="load()">Update</button>
+      </div>
+    </fieldset>
+
+    <!-- Status -->
+    <fieldset class="panel status-panel">
+      <legend class="panel-legend">Status</legend>
+      <div class="status-rows">
+        <div class="status-row">
+          <span class="status-dot dot-green"></span>
+          <span class="status-key">Global Marketing:</span>
+          <span class="status-val">Active</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot dot-gray"></span>
+          <span class="status-key">Current Business:</span>
+          <span class="status-val">{{ currentBusiness() || 'None' }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot dot-none"></span>
+          <span class="status-key">Test campaign:</span>
+          <span class="status-val">{{ testCampaignName() || 'None' }}</span>
+        </div>
+      </div>
+    </fieldset>
+
+  </div>
+
+  <!-- ── Loading skeleton ───────────────────────────────────────────────── -->
+  <fieldset *ngIf="isLoading()" class="panel campaigns-panel">
+    <legend class="panel-legend">Campaigns</legend>
+    <div class="skeleton-table">
+      <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
+        <div class="skeleton-cell w-30"></div>
+        <div class="skeleton-cell w-10"></div>
+        <div class="skeleton-cell w-10"></div>
+        <div class="skeleton-cell w-15"></div>
+        <div class="skeleton-cell w-8"></div>
+        <div class="skeleton-cell w-12"></div>
+        <div class="skeleton-cell w-12"></div>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- ── Error ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="error-box">
+    <i class="ti ti-alert-triangle"></i>
+    <span>{{ error() }}</span>
+    <button class="btn btn-sm btn-secondary" (click)="load()">Retry</button>
+  </div>
+
+  <!-- ── Campaigns table ────────────────────────────────────────────────── -->
+  <fieldset *ngIf="!isLoading()" class="panel campaigns-panel">
+    <legend class="panel-legend">Campaigns</legend>
+
+    <div class="table-wrap">
+      <table class="campaigns-table">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="sort('name')">Name <span class="sort-icon">{{ sortIcon('name') }}</span></th>
+            <th class="sortable" (click)="sort('campaignStatus')">State <span class="sort-icon">{{ sortIcon('campaignStatus') }}</span></th>
+            <th class="sortable" (click)="sort('campaignType')">Type <span class="sort-icon">{{ sortIcon('campaignType') }}</span></th>
+            <th class="sortable" (click)="sort('interactive')">Interactivity <span class="sort-icon">{{ sortIcon('interactive') }}</span></th>
+            <th class="sortable" (click)="sort('priority')">Priority <span class="sort-icon">{{ sortIcon('priority') }}</span></th>
+            <th class="sortable" (click)="sort('startDate')">Start Date <span class="sort-icon">{{ sortIcon('startDate') }}</span></th>
+            <th class="sortable" (click)="sort('endDate')">End Date <span class="sort-icon">{{ sortIcon('endDate') }}</span></th>
+            <th class="sortable" (click)="sort('purgeDate')">Purge Date <span class="sort-icon">{{ sortIcon('purgeDate') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="filtered().length === 0">
+            <td colspan="8" class="empty-row">No campaigns match the current filters.</td>
+          </tr>
+          <tr
+            *ngFor="let c of filtered()"
+            [class.row-selected]="isSelected(c.campaignId)"
+            (click)="selectCampaign(c.campaignId)"
+            (dblclick)="goEdit(c.campaignId)"
+          >
+            <td class="cell-name">{{ c.name }}</td>
+            <td>
+              <span [class]="'status-badge status-' + c.campaignStatus">
+                {{ getStatusLabel(c.campaignStatus) }}
+              </span>
+            </td>
+            <td>
+              <span [class]="'type-badge type-' + c.campaignType">
+                {{ getTypeLabel(c.campaignType) }}
+              </span>
+            </td>
+            <td>{{ c.interactive ? 'Interactive' : 'Non-interactive' }}</td>
+            <td class="cell-center">{{ c.priority }}</td>
+            <td>{{ c.startDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ c.endDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ c.purgeDate | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </fieldset>
+
+  <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+  <div class="footer-actions">
+    <div class="footer-left">
+      <button class="btn btn-action"
+        [disabled]="!selectedCampaignId()"
+        (click)="goDetails(selectedCampaignId()!)">
+        Campaign Properties
+      </button>
+      <button class="btn btn-action"
+        [disabled]="!selectedCampaignId()"
+        (click)="openMarketingControl()">
+        Marketing Control…
+      </button>
+    </div>
+    <div class="footer-right">
+      <button class="btn btn-action" (click)="load()">Apply</button>
+      <button class="btn btn-action btn-ok" (click)="load()">OK</button>
+      <button class="btn btn-action btn-danger-ghost"
+        [disabled]="!selectedCampaignId()"
+        (click)="deleteCampaign(selectedCampaignId()!, $event)">
+        Supprimer
+      </button>
+    </div>
+  </div>
+
+</div>

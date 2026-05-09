@@ -166,4 +166,13 @@ export class HeaderComponent implements OnDestroy {
     this.isProfileOpen.set(false);
     this.router.navigate(['/admin']);
   }
+
+  goToCampaigns() {
+    this.isProfileOpen.set(false);
+    this.router.navigate(['/campaign']);
+  }
+
+  isCampaignRoute(): boolean {
+    return this.router.url.startsWith('/campaign');
+  }
 }

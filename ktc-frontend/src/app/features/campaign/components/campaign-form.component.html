@@ -1,0 +1,219 @@
+<div class="page-wrapper">
+
+  <!-- ── Window title bar ──────────────────────────────────────────────────── -->
+  <div class="win-titlebar">
+    <span class="win-title">
+      {{ isEditing() ? 'Campaign Properties — Edit' : 'Campaign Properties — New Campaign' }}
+    </span>
+    <a routerLink="/campaign" class="win-close" title="Close">✕</a>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────────────── -->
+  <div *ngIf="isLoading()" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <span>Loading campaign…</span>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────────────────────── -->
+  <div *ngIf="error() && !isLoading()" class="error-box">
+    <i class="ti ti-alert-triangle"></i>
+    <span>{{ error() }}</span>
+  </div>
+
+  <!-- ── Form body ─────────────────────────────────────────────────────────── -->
+  <div *ngIf="!isLoading()" class="form-body">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button type="button" class="tab" [class.tab-active]="activeTab() === 'general'" (click)="activeTab.set('general')">General</button>
+        <button type="button" class="tab" [class.tab-active]="activeTab() === 'display'" (click)="activeTab.set('display')">Display Settings</button>
+        <button type="button" class="tab" [class.tab-active]="activeTab() === 'data'" (click)="activeTab.set('data')">Campaign Data</button>
+      </div>
+
+      <div class="tab-content">
+
+        <!-- ── Tab: General ────────────────────────────────────────────────── -->
+        <div *ngIf="activeTab() === 'general'">
+
+          <fieldset class="panel">
+            <legend class="panel-legend">Identification</legend>
+            <div class="form-grid-2">
+
+              <div class="form-row-full">
+                <div class="form-field">
+                  <label class="field-label">Campaign Name *</label>
+                  <input type="text" formControlName="name" class="field-input" placeholder="Ex: Promo Printemps 2025" />
+                  <span *ngIf="getFormError('name')" class="field-error">{{ getFormError('name') }}</span>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Package Name</label>
+                <input type="text" formControlName="packageName" class="field-input" placeholder="com.atm.promo" />
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">External ID</label>
+                <input type="text" formControlName="externalId" class="field-input" placeholder="External reference" />
+              </div>
+
+            </div>
+          </fieldset>
+
+          <fieldset class="panel">
+            <legend class="panel-legend">Type &amp; Status</legend>
+            <div class="form-grid-3">
+
+              <div class="form-field">
+                <label class="field-label">Campaign Type *</label>
+                <select formControlName="campaignType" class="field-select">
+                  <option *ngFor="let t of campaignTypes" [value]="t.value">{{ t.label }}</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Status *</label>
+                <select formControlName="campaignStatus" class="field-select">
+                  <option *ngFor="let s of campaignStatuses" [value]="s.value">{{ s.label }}</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Priority (1–10) *</label>
+                <input type="number" formControlName="priority" class="field-input" min="1" max="10" />
+                <span *ngIf="getFormError('priority')" class="field-error">{{ getFormError('priority') }}</span>
+              </div>
+
+              <div class="form-field">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="interactive" class="field-checkbox" />
+                  Interactive campaign
+                </label>
+                <p class="field-hint">Campaign can request customer response</p>
+              </div>
+
+              <div class="form-field">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="campaignInTestmode" class="field-checkbox" />
+                  Test mode
+                </label>
+                <p class="field-hint">Only for testing purposes</p>
+              </div>
+
+            </div>
+          </fieldset>
+
+          <fieldset class="panel">
+            <legend class="panel-legend">Dates</legend>
+            <div class="form-grid-3">
+
+              <div class="form-field">
+                <label class="field-label">Start Date *</label>
+                <input type="date" formControlName="startDate" class="field-input" />
+                <span *ngIf="getFormError('startDate')" class="field-error">{{ getFormError('startDate') }}</span>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">End Date *</label>
+                <input type="date" formControlName="endDate" class="field-input" />
+                <span *ngIf="getFormError('endDate')" class="field-error">{{ getFormError('endDate') }}</span>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Purge Date *</label>
+                <input type="date" formControlName="purgeDate" class="field-input" />
+                <p class="field-hint">Data will be deleted after this date</p>
+                <span *ngIf="getFormError('purgeDate')" class="field-error">{{ getFormError('purgeDate') }}</span>
+              </div>
+
+            </div>
+          </fieldset>
+
+        </div>
+
+        <!-- ── Tab: Display Settings ───────────────────────────────────────── -->
+        <div *ngIf="activeTab() === 'display'">
+
+          <fieldset class="panel">
+            <legend class="panel-legend">Show Limits</legend>
+            <div class="form-grid-2">
+
+              <div class="form-field">
+                <label class="field-label">Max Shows</label>
+                <input type="number" formControlName="maxShows" class="field-input" min="0" />
+                <p class="field-hint">0 = unlimited</p>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Rest Hours after limit</label>
+                <input type="number" formControlName="restHours" class="field-input" min="0" />
+                <p class="field-hint">Hours before re-showing after limit reached</p>
+              </div>
+
+            </div>
+          </fieldset>
+
+          <fieldset class="panel">
+            <legend class="panel-legend">"Show Me Later" Settings</legend>
+            <div class="form-grid-2">
+
+              <div class="form-field">
+                <label class="field-label">Max "Show Me Later" Shows</label>
+                <input type="number" formControlName="maxShowMeLaterShows" class="field-input" min="0" />
+                <p class="field-hint">0 = unlimited</p>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">"Show Me Later" Rest Hours</label>
+                <input type="number" formControlName="showMeLaterRestHours" class="field-input" min="0" />
+              </div>
+
+            </div>
+          </fieldset>
+
+        </div>
+
+        <!-- ── Tab: Campaign Data ─────────────────────────────────────────── -->
+        <div *ngIf="activeTab() === 'data'">
+
+          <fieldset class="panel">
+            <legend class="panel-legend">XML Data</legend>
+
+            <div class="form-field" style="margin-bottom:10px">
+              <label class="field-label">Campaign Data (XML)</label>
+              <textarea formControlName="campaignData" class="field-textarea" rows="6"
+                placeholder="<?xml version='1.0'?>…"></textarea>
+              <p class="field-hint">Additional display rules</p>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Dynamic Campaign Data (XML)</label>
+              <textarea formControlName="dynamicCampaignData" class="field-textarea" rows="6"
+                placeholder="<?xml version='1.0'?>…"></textarea>
+              <p class="field-hint">Dynamic values (e.g. interest rates)</p>
+            </div>
+
+          </fieldset>
+
+        </div>
+
+      </div><!-- /tab-content -->
+
+      <!-- ── Dialog footer ──────────────────────────────────────────────── -->
+      <div class="dialog-footer">
+        <div class="footer-left">
+          <span *ngIf="isEditing()" class="campaign-id-label">Campaign ID: {{ campaignId }}</span>
+        </div>
+        <div class="footer-right">
+          <button type="button" class="btn btn-action" (click)="cancel()">Cancel</button>
+          <button type="button" class="btn btn-action btn-ok" (click)="submit()" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Saving…' : (isEditing() ? 'Apply' : 'OK') }}
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+</div>
